@@ -1,0 +1,22 @@
+{
+  "name": "stock-b",
+  "version": "1.0.0",
+  "description": "Stock manager",
+  "keywords": [
+    "stock",
+    "manager",
+    "el",
+    "lago",
+    "mobil"
+  ],
+  "license": "ISC",
+  "author": "Async-Dev",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
