@@ -13,23 +13,119 @@ datasource db {
   provider = "postgresql"
 }
 
-//aqui se crean los modelos
-
-// model nombre_modelo {
-//estos son campos ejemplo
-//   id         Int      @id @default(autoincrement())
-//   latitud    Float
-//   longitud   Float
-//   direccion  String
-//   createdAt  DateTime @default(now())
-//   updatedAt  DateTime @updatedAt
-// }
-
 model usuario {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
+  productosId Int?
+  
   nombre      String
-  usuario     String   @unique
-  email_phone String   @unique
-  password    String
-  createdAt   DateTime @default(now())
+  usuario     String     @unique
+  email_phone String     @unique
+  password    String //aplicar hash
+  createdAt   DateTime   @default(now())
+
+  productos   productos? @relation(fields: [productosId], references: [id])
+}
+
+model ubicacion {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  calle     String
+  cp        String
+  colonia   String
+  celular   String
+  createdAt DateTime @default(now())
+
+  estantes estantes[]
+}
+
+model estantes {
+  id        Int      @id @default(autoincrement())
+  Seccion   String
+  nivel     Int
+  pasillo   Int
+  createdAt DateTime @default(now())
+
+  ubicacion   ubicacion?  @relation(fields: [ubicacionId], references: [id])
+  ubicacionId Int?
+  productos   productos[]
+}
+
+model categorias {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique
+  createdAt DateTime @default(now())
+
+  productos productos[] // este modelo aun no existe
+}
+
+model productos {
+  id          Int  @id @default(autoincrement())
+  categoriaId Int? //este es el tipo
+  estanteId   Int?
+
+  categoria categorias? @relation(fields: [categoriaId], references: [id])
+  estante   estantes?   @relation(fields: [estanteId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  variantes variantes[] // Corregido el nombre del campo
+  usuario   usuario[]
+}
+
+model variantes {
+  id          Int  @id @default(autoincrement())
+  producto_id Int
+  locacion_id Int
+  estante_id  Int?
+
+  foto String // se agregara un servicion de almacenamiento de imagenes
+
+  nombre             String
+  codigo             String
+  color              String
+  descripcion        String
+  cantidad           Int
+  medidas            String
+  precio_publico     Float
+  precio_contratista Float
+  costo_compra       Float
+
+  ganacia_publico     Float // cosiderando si actualizarlo cada que se haga una venta o con el stock estatico restante...
+  ganacia_contratista Float // cosiderando si actualizarlo cada que se haga una venta o con el stock estatico restante...
+
+  ganancias_stock Float // Corregido el nombre del campo
+
+  producto productos? @relation(fields: [producto_id], references: [id])
+  ventas   ventas[]
+}
+
+model ventas {
+  id          Int   @id @default(autoincrement())
+  variante_id Int
+  cantidad    Int
+  total_venta Float
+
+  // Timestamp de la información del producto
+  precio_publico     Float
+  precio_contratista Float
+  costo_compra       Float
+
+  fecha_venta DateTime   @default(now())
+  // Relación con variantes
+  variante    variantes? @relation(fields: [variante_id], references: [id])
+
+  // Relación con costos extras
+  costosExtras costosExtras[]
+}
+
+model costosExtras {
+  id        Int      @id @default(autoincrement())
+  venta_id  Int
+  motivo    String
+  costo     Float
+  createdAt DateTime @default(now())
+
+  // Relación con ventas
+  venta ventas @relation(fields: [venta_id], references: [id])
 }
