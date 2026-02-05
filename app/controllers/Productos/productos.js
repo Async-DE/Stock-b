@@ -181,4 +181,130 @@ const updateVariante = async (req, res) => {
   }
 }
 
-export { createProducto, crearVariante, updateVariante };
+import prisma from "../../../prisma/prismaClient.js";
+
+/**
+ * ============================
+ * GET - Productos por categoría
+ * ============================
+ * /productos/categoria/:categoriaId
+ */
+const getProductosByCategoria = async (req, res) => {
+  const { categoriaId } = req.params;
+
+  try {
+    const productos = await prisma.productos.findMany({
+      where: {
+        categoriaId: parseInt(categoriaId),
+      },
+      include: {
+        categoria: true,
+        estantes: {
+          include: {
+            ubicacion: true,
+          },
+        },
+        variantes: true,
+      },
+    });
+
+    res.status(200).json(productos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener productos por categoría" });
+  }
+};
+
+/**
+ * =====================================
+ * GET - Producto específico con variantes
+ * =====================================
+ * /productos/:id
+ */
+const getProductoById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const producto = await prisma.productos.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        categoria: true,
+        estantes: {
+          include: {
+            ubicacion: true,
+          },
+        },
+        variantes: true,
+      },
+    });
+
+    if (!producto) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    res.status(200).json(producto);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener el producto" });
+  }
+};
+
+/**
+ * =====================================
+ * GET - Productos por parámetros de búsqueda
+ * =====================================
+ * /productos/buscar?nombre=&color=&codigo=&categoria=
+ */
+const getProductosBySearch = async (req, res) => {
+  const { nombre, color, codigo, categoria } = req.query;
+
+  try {
+    const productos = await prisma.productos.findMany({
+      where: {
+        categoria: categoria
+          ? { nombre: { contains: categoria, mode: "insensitive" } }
+          : undefined,
+        variantes: {
+          some: {
+            AND: [
+              nombre
+                ? { nombre: { contains: nombre, mode: "insensitive" } }
+                : {},
+              color
+                ? { color: { contains: color, mode: "insensitive" } }
+                : {},
+              codigo
+                ? { codigo: { contains: codigo, mode: "insensitive" } }
+                : {},
+            ],
+          },
+        },
+      },
+      include: {
+        categoria: true,
+        estantes: {
+          include: {
+            ubicacion: true,
+          },
+        },
+        variantes: true,
+      },
+    });
+
+    res.status(200).json(productos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al buscar productos" });
+  }
+};
+
+export {
+  createProducto,
+  crearVariante,
+  updateVariante,
+  getProductosByCategoria,
+  getProductoById,
+  getProductosBySearch,
+};
+
+
