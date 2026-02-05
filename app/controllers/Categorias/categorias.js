@@ -7,6 +7,9 @@ const createCategoria = async (req, res) => {
   // Validar los datos de entrada
   await check("nombre", "El nombre es obligatorio").notEmpty().run(req);
 
+  //Validar tipos de datos
+  await check("nombre", "El nombre debe ser una cadena de texto").isString().run(req);
+
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
