@@ -73,4 +73,13 @@ const updateUbicacion = async (req, res) => {
   }
 };
 
-export { createUbicacion, updateUbicacion };
+const getUbicaciones = async (req, res) => {
+  try {
+    const ubicaciones = await prisma.ubicacion.findMany();
+    res.status(200).json(ubicaciones);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener las ubicaciones" });
+  }
+};
+
+export { createUbicacion, updateUbicacion, getUbicaciones };
