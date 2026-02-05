@@ -5,19 +5,12 @@ const createUbicacion = async (req, res) => {
   const { nombre, calle, cp, colonia, celular } = req.body;
 
   // Validar los datos de entrada
-  await check("nombre", "El nombre es obligatorio").notEmpty().run(req);
-  await check("calle", "La calle es obligatoria").notEmpty().run(req);
-  await check("cp", "El código postal es obligatorio").notEmpty().run(req);
-  await check("colonia", "La colonia es obligatoria").notEmpty().run(req);
-  await check("celular", "El celular es obligatorio").notEmpty().run(req);
-
-  //Validar tipos de datos
-  await check("nombre", "El nombre debe ser una cadena de texto").isString().run(req);
-  await check("calle", "La calle debe ser una cadena de texto").isString().run(req);
-  await check("cp", "El código postal debe ser una cadena de texto").isString().run(req);
-  await check("colonia", "La colonia debe ser una cadena de texto").isString().run(req);
-  await check("celular", "El celular debe ser una cadena de texto").isString().run(req);
-
+  await check("nombre").notEmpty().isString().withMessage("El nombre es obligatorio y debe ser una cadena de texto").run(req);
+  await check("calle").notEmpty().isString().withMessage("La calle es obligatoria y debe ser una cadena de texto").run(req);
+  await check("cp").notEmpty().isString().withMessage("El código postal es obligatorio y debe ser una cadena de texto").run(req);
+  await check("colonia").notEmpty().isString().withMessage("La colonia es obligatoria y debe ser una cadena de texto").run(req);
+  await check("celular").notEmpty().isString().withMessage("El celular es obligatorio y debe ser una cadena de texto").run(req);
+  
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
