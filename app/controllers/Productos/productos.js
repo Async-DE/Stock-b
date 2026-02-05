@@ -121,7 +121,6 @@ const crearVariante = async (req, res) => {
 
     res.status(201).json("Variante creada con éxito");
     } catch (error) {
-      console.error("Error al crear la variante:", error);
       res.status(500).json({ error: "Error al crear la variante" });
     }
 }
@@ -178,7 +177,6 @@ const updateVariante = async (req, res) => {
     });
     res.status(200).json("Variante actualizada con éxito");
   } catch (error) {
-    console.error("Error al actualizar la variante:", error);
     res.status(500).json({ error: "Error al actualizar la variante" });
   }
 }
