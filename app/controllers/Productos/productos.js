@@ -181,7 +181,6 @@ const updateVariante = async (req, res) => {
   }
 }
 
-import prisma from "../../../prisma/prismaClient.js";
 
 /**
  * ============================
