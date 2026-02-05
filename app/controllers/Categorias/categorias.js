@@ -1,15 +1,11 @@
 import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
 
-const createUbicacion = async (req, res) => {
-  const { nombre, calle, cp, colonia, celular } = req.body;
+const createCategoria = async (req, res) => {
+  const { nombre } = req.body;
 
   // Validar los datos de entrada
   await check("nombre", "El nombre es obligatorio").notEmpty().run(req);
-  await check("calle", "La calle es obligatoria").notEmpty().run(req);
-  await check("cp", "El código postal es obligatorio").notEmpty().run(req);
-  await check("colonia", "La colonia es obligatoria").notEmpty().run(req);
-  await check("celular", "El celular es obligatorio").notEmpty().run(req);
 
   const errors = validationResult(req);
 
@@ -18,21 +14,17 @@ const createUbicacion = async (req, res) => {
   }
 
   try {
-    await prisma.ubicacion.create({
+    await prisma.categorias.create({
       data: {
-        nombre,
-        calle,
-        cp,
-        colonia,
-        celular,
+        nombre
       },
     });
 
-    res.status(201).json("Ubicación creada con éxito");
+    res.status(201).json("Categoría creada con éxito");
   } catch (error) {
-    console.error("Error al crear la ubicación:", error);
-    res.status(500).json({ error: "Error al crear la ubicación" });
+    console.error("Error al crear la categoría:", error);
+    res.status(500).json({ error: "Error al crear la categoría" });
   }
 };
 
-export { createUbicacion };
+export { createCategoria };
