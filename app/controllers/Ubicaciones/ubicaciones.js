@@ -11,6 +11,13 @@ const createUbicacion = async (req, res) => {
   await check("colonia", "La colonia es obligatoria").notEmpty().run(req);
   await check("celular", "El celular es obligatorio").notEmpty().run(req);
 
+  //Validar tipos de datos
+  await check("nombre", "El nombre debe ser una cadena de texto").isString().run(req);
+  await check("calle", "La calle debe ser una cadena de texto").isString().run(req);
+  await check("cp", "El código postal debe ser una cadena de texto").isString().run(req);
+  await check("colonia", "La colonia debe ser una cadena de texto").isString().run(req);
+  await check("celular", "El celular debe ser una cadena de texto").isString().run(req);
+
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
