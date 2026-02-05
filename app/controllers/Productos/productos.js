@@ -64,6 +64,7 @@ const createProducto = async (req, res) => {
       data: {
         productoId: productoCreado.id,
         locacion_id,
+        estantesId,
         nombre,
         codigo,
         color,
