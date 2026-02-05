@@ -30,4 +30,25 @@ const createCategoria = async (req, res) => {
   }
 };
 
-export { createCategoria };
+const updateCategoria = async (req, res) => {
+  const { id } = req.params;
+  const { nombre } = req.body;
+  try {
+    const categoriaExistente = await prisma.categorias.findUnique({
+      where: { id: parseInt(id) },
+    });
+    if (!categoriaExistente) {
+      return res.status(404).json({ error: "Categoría no encontrada" });
+    }
+    await prisma.categorias.update({
+      where: { id: parseInt(id) },
+      data: { nombre },
+    });
+    res.status(200).json("Categoría actualizada con éxito");
+  } catch (error) {
+    console.error("Error al actualizar la categoría:", error);
+    res.status(500).json({ error: "Error al actualizar la categoría" });
+  }
+};
+
+export { createCategoria, updateCategoria };
