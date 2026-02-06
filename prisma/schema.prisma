@@ -3,21 +3,22 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 model usuario {
-  id          Int  @id @default(autoincrement())
-  productosId Int?
+  id Int @id @default(autoincrement())
 
   nombre      String
-  usuario     String   @unique
-  email_phone String   @unique
-  password    String //aplicar hash
-  createdAt   DateTime @default(now())
+  usuario     String  @unique
+  email_phone String  @unique
+  password    String // hash bcrypt
+  estado      Boolean @default(true)
 
-  productos  productos?  @relation(fields: [productosId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   auditorias auditoria[]
 }
 
@@ -51,7 +52,7 @@ model categorias {
   nombre    String   @unique
   createdAt DateTime @default(now())
 
-  productos productos[]
+  productos  productos[]
   auditorias auditoria[]
 }
 
@@ -64,7 +65,6 @@ model productos {
   createdAt DateTime @default(now())
 
   variantes  variantes[]
-  usuario    usuario[]
   estantes   estantes?   @relation(fields: [estantesId], references: [id])
   estantesId Int?
   auditorias auditoria[]
@@ -87,8 +87,8 @@ model variantes {
   precio_publico     Float
   precio_contratista Float
   costo_compra       Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   ganacia_publico     Float // incrementa con cada venta realizada
   ganacia_contratista Float // incrementa con cada venta realizada
@@ -101,14 +101,14 @@ model variantes {
 }
 
 model ventas {
-  id          Int      @id @default(autoincrement())
-  variante_id Int
-  cantidad    Int
-  total_venta Float
-  fecha_venta DateTime @default(now())
-  nombre_cliente String
-  contacto_cliente String
-  costos_extras Float
+  id                 Int      @id @default(autoincrement())
+  variante_id        Int
+  cantidad           Int
+  total_venta        Float
+  fecha_venta        DateTime @default(now())
+  nombre_cliente     String
+  contacto_cliente   String
+  costos_extras      Float
   motivo_costo_extra String
 
   // Timestamp de la información del producto
@@ -143,7 +143,6 @@ enum Accion {
   AJUSTE_STOCK
 }
 
-
 model auditoria {
   id Int @id @default(autoincrement())
 
@@ -168,7 +167,6 @@ model auditoria {
   createdAt DateTime @default(now())
 
   usuario usuario @relation(fields: [usuario_id], references: [id], map: "auditoria_usuario_fkey")
-  
 
   @@index([usuario_id])
   @@index([productoId])
