@@ -47,4 +47,40 @@ const createVenta = async (req, res) => {
     }
 };
 
-export { createVenta };
+//Obtener salidas de producto por rango de fechas
+const getVentasByDateRange = async (req, res) => {
+    const { startDate, endDate } = req.body;
+    try {
+        const ventas = await prisma.ventas.findMany({
+            where: {
+                createdAt: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate),
+                },
+            },
+        });
+        res.status(200).json(ventas);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener las ventas" });
+    }
+};
+
+//Obtener salida de producto por nombre de cliente o contacto (By Search)
+const searchVentas = async (req, res) => {
+    const { search } = req.body;
+    try {
+        const ventas = await prisma.ventas.findMany({
+            where: {
+                OR: [
+                    { nombre_cliente: { contains: search, mode: 'insensitive' } },
+                    { contacto_cliente: { contains: search, mode: 'insensitive' } }
+                ]
+            },
+        });
+        res.status(200).json(ventas);
+    } catch (error) {
+        res.status(500).json({ error: "Error al buscar las ventas" });
+    }
+}
+
+export { createVenta, getVentasByDateRange, searchVentas };
