@@ -2,13 +2,15 @@ import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
 
 const createVenta = async (req, res) => {
-    const { varianteId, cantidad, total_venta, nombre_cliente, contacto_cliente} = req.body;
+    const { varianteId, cantidad, total_venta, nombre_cliente, contacto_cliente, costos_extras, motivo_costo_extra } = req.body;
 
     check("varianteId").notEmpty().isInt().withMessage("varianteId debe ser un entero");
     check("cantidad").notEmpty().isInt().withMessage("cantidad debe ser un entero");
     check("total_venta").notEmpty().isFloat().withMessage("total_venta debe ser un número decimal");
     check("nombre_cliente").notEmpty().isString().withMessage("nombre_cliente debe ser una cadena de texto");
     check("contacto_cliente").notEmpty().isString().withMessage("contacto_cliente debe ser una cadena de texto");
+    check("costos_extras").optional().isFloat().withMessage("costos_extras debe ser un número decimal");
+    check("motivo_costo_extra").optional().isString().withMessage("motivo_costo_extra debe ser una cadena de texto");
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -34,7 +36,9 @@ const createVenta = async (req, res) => {
                 contacto_cliente,
                 precio_publico,
                 precio_contratista,
-                costo_compra
+                costo_compra,
+                costos_extras,
+                motivo_costo_extra
             },
         });
         res.status(201).json(nuevaVenta);
