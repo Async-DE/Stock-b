@@ -139,13 +139,6 @@ enum Accion {
   AJUSTE_STOCK
 }
 
-enum Entidad {
-  PRODUCTO
-  VARIANTE
-  VENTA
-  ESTANTE
-  USUARIO
-}
 
 model auditoria {
   id Int @id @default(autoincrement())
