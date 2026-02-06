@@ -1,18 +1,42 @@
-import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import bcrypt from "bcryptjs";
+import prisma from "../../../prisma/prismaClient.js";
+import { check, validationResult } from "express-validator";
 
 /* =========================
    CREATE USUARIO
    ========================= */
-export const createUsuario = async (req, res) => {
+const createUsuario = async (req, res) => {
+  await check("nombre")
+    .notEmpty()
+    .isString()
+    .withMessage("El nombre es obligatorio")
+    .run(req);
+
+  await check("usuario")
+    .notEmpty()
+    .isString()
+    .withMessage("El usuario es obligatorio")
+    .run(req);
+
+  await check("email_phone")
+    .notEmpty()
+    .isString()
+    .withMessage("El email o teléfono es obligatorio")
+    .run(req);
+
+  await check("password")
+    .notEmpty()
+    .isString()
+    .withMessage("La contraseña es obligatoria")
+    .run(req);
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
     const { nombre, usuario, email_phone, password } = req.body;
-
-    if (!nombre || !usuario || !email_phone || !password) {
-      return res.status(400).json({ message: 'Datos incompletos' });
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -21,8 +45,8 @@ export const createUsuario = async (req, res) => {
         nombre,
         usuario,
         email_phone,
-        password: hashedPassword
-      }
+        password: hashedPassword,
+      },
     });
 
     // Auditoría
@@ -30,8 +54,8 @@ export const createUsuario = async (req, res) => {
     await prisma.auditoria.create({
       data: {
         usuario_id: nuevoUsuario.id,
-        accion: 'CREATE'
-      }
+        accion: "CREATE",
+      },
     });
 
     // No devolver password
@@ -40,25 +64,32 @@ export const createUsuario = async (req, res) => {
     res.status(201).json(usuarioSeguro);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al crear usuario' });
+    res.status(500).json({ error: "Error al crear usuario" });
   }
 };
 
 /* =========================
    UPDATE ESTADO USUARIO
    ========================= */
-export const updateEstadoUsuario = async (req, res) => {
+const updateEstadoUsuario = async (req, res) => {
+  const { id } = req.params;
+
+  await check("estado")
+    .isBoolean()
+    .withMessage("El estado debe ser booleano")
+    .run(req);
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
-    const { id } = req.params;
     const { estado } = req.body;
 
-    if (typeof estado !== 'boolean') {
-      return res.status(400).json({ message: 'Estado inválido' });
-    }
-
     const usuarioActualizado = await prisma.usuario.update({
-      where: { id: Number(id) },
-      data: { estado }
+      where: { id: parseInt(id) },
+      data: { estado },
     });
 
     // Auditoría
@@ -66,29 +97,29 @@ export const updateEstadoUsuario = async (req, res) => {
     await prisma.auditoria.create({
       data: {
         usuario_id: usuarioActualizado.id,
-        accion: 'UPDATE'
-      }
+        accion: "UPDATE",
+      },
     });
 
     const { password: _, ...usuarioSeguro } = usuarioActualizado;
 
-    res.json(usuarioSeguro);
+    res.status(200).json(usuarioSeguro);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al actualizar estado' });
+    res.status(500).json({ error: "Error al actualizar estado del usuario" });
   }
 };
 
 /* =========================
    GET ALL USUARIOS (FILTROS)
    ========================= */
-export const getUsuarios = async (req, res) => {
+const getUsuarios = async (req, res) => {
   try {
     const { estado } = req.query;
 
     const where = {};
     if (estado !== undefined) {
-      where.estado = estado === 'true';
+      where.estado = estado === "true";
     }
 
     const usuarios = await prisma.usuario.findMany({
@@ -100,59 +131,67 @@ export const getUsuarios = async (req, res) => {
         email_phone: true,
         estado: true,
         createdAt: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     });
 
-    res.json(usuarios);
+    res.status(200).json(usuarios);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al obtener usuarios' });
+    res.status(500).json({ error: "Error al obtener usuarios" });
   }
 };
 
 /* =========================
    AUDITORÍA GENERAL (últimas 20)
    ========================= */
-export const getAuditoriaGeneral = async (_req, res) => {
+const getAuditoriaGeneral = async (_req, res) => {
   try {
     const auditorias = await prisma.auditoria.findMany({
       take: 20,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         usuario: {
           select: {
             id: true,
             nombre: true,
-            usuario: true
-          }
-        }
-      }
+            usuario: true,
+          },
+        },
+      },
     });
 
-    res.json(auditorias);
+    res.status(200).json(auditorias);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al obtener auditoría' });
+    res.status(500).json({ error: "Error al obtener auditoría" });
   }
 };
 
 /* =========================
    AUDITORÍA POR USUARIO (últimas 20)
    ========================= */
-export const getAuditoriaPorUsuario = async (req, res) => {
-  try {
-    const { id } = req.params;
+const getAuditoriaPorUsuario = async (req, res) => {
+  const { id } = req.params;
 
+  try {
     const auditorias = await prisma.auditoria.findMany({
-      where: { usuario_id: Number(id) },
+      where: { usuario_id: parseInt(id) },
       take: 20,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
-    res.json(auditorias);
+    res.status(200).json(auditorias);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al obtener auditoría del usuario' });
+    res.status(500).json({ error: "Error al obtener auditoría del usuario" });
   }
+};
+
+export {
+  createUsuario,
+  updateEstadoUsuario,
+  getUsuarios,
+  getAuditoriaGeneral,
+  getAuditoriaPorUsuario,
 };
