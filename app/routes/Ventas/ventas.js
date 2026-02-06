@@ -3,8 +3,10 @@ import { createVenta, getVentasByDateRange,searchVentas } from "../../controller
 
 const router = express.Router();
 
-router.post("/ventas/crear", createVenta);  
-router.post("/ventas", getVentasByDateRange);
-router.post("/ventas/buscar", searchVentas);
+router.post("/crear", createVenta);
+
+router.post("/verRango", getVentasByDateRange);
+
+router.post("/verbuscar", searchVentas);
 
 export default router;

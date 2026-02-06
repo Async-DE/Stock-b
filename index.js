@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-import ubicacionesRoutes from "./app/routes/Ubicaciones/ubicaciones.js";
+import routersmaster from "./app/routes/indexroutes.js";
 
 const app = express();
 
@@ -17,7 +17,7 @@ app.use(
   }),
 );
 
-app.use("/stock", ubicacionesRoutes);
+app.use("/stock", routersmaster);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

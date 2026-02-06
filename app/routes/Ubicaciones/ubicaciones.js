@@ -3,10 +3,10 @@ import { createUbicacion, updateUbicacion,getUbicaciones } from "../../controlle
 
 const router = express.Router();
 
-router.post("/ubicaciones/crear", createUbicacion);
+router.post("/crear", createUbicacion);
 
-router.put("/ubicaciones/actualizar/:id", updateUbicacion);
+router.put("/actualizar/:id", updateUbicacion);
 
-router.get("/ubicaciones", getUbicaciones);
+router.get("/ver", getUbicaciones);
 
 export default router;
