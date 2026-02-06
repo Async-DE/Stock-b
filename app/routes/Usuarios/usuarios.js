@@ -10,9 +10,9 @@ import {
 const router = express.Router();
 
 /* Usuarios */
-router.post('/usuarios/crear', createUsuario);
-router.patch('/usuarios/:id/estado', updateEstadoUsuario);
-router.get('/usuarios', getUsuarios);
+router.post('/crear', createUsuario);
+router.patch('/:id/estado', updateEstadoUsuario);
+router.get('/', getUsuarios);
 
 /* Auditoría */
 router.get('/auditoria/general', getAuditoriaGeneral);
