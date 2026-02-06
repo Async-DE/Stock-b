@@ -10,28 +10,17 @@ import {
 
 const router = express.Router();
 
-/**
- * =========================
- * Productos
- * =========================
- */
+router.post("/crear", createProducto);
 
-// Crear producto con variante base
-router.post("/productos", createProducto);
+router.get("/ver/:id", getProductoById);
 
-// Vincular nueva variante a producto
-router.post("/productos/variantes", crearVariante);
+router.get("/verbuscar", getProductosBySearch);
 
-// Actualizar variante existente
-router.put("/productos/variantes/:varianteId", updateVariante);
+router.get("/ver/categoria/:categoriaId", getProductosByCategoria);
+//--------------------------------------------------------
+router.post("/variantes/crear", crearVariante);
 
-// Obtener productos por categoría
-router.get("/productos/categoria/:categoriaId", getProductosByCategoria);
+router.put("/variantes/actualizar/:varianteId", updateVariante);
 
-// Obtener producto específico con variantes
-router.get("/productos/:id", getProductoById);
-
-// Búsqueda avanzada de productos
-router.get("/productos/buscar", getProductosBySearch);
 
 export default router;

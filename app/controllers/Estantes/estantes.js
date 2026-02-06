@@ -1,9 +1,6 @@
 import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
 
-/**
- * Crear estante
- */
 const createEstante = async (req, res) => {
   const { pasillo, seccion, nivel, ubicacionId } = req.body;
 
@@ -21,9 +18,13 @@ const createEstante = async (req, res) => {
   }
 
   try {
-    if (ubicacionId) {
+    const pasilloInt = parseInt(pasillo, 10);
+    const nivelInt = parseInt(nivel, 10);
+    const ubicacionIdInt = ubicacionId ? parseInt(ubicacionId, 10) : null;
+
+    if (ubicacionIdInt) {
       const existeUbicacion = await prisma.ubicacion.findUnique({
-        where: { id: ubicacionId },
+        where: { id: ubicacionIdInt },
       });
 
       if (!existeUbicacion) {
@@ -33,24 +34,20 @@ const createEstante = async (req, res) => {
 
     const estante = await prisma.estantes.create({
       data: {
-        pasillo,
-        nivel,
+        pasillo: pasilloInt,
+        nivel: nivelInt,
         Seccion: seccion,
-        ubicacionId: ubicacionId ?? null,
+        ubicacionId: ubicacionIdInt,
       },
     });
 
-    res.status(201).json(estante);
+    res.status(200).json("Estante creado con éxito");
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Error al crear el estante" });
   }
 };
 
-/**
- * Obtener todos los estantes
- */
-const getEstantes = async (_req, res) => {
+const getEstantes = async (req, res) => {
   try {
     const estantes = await prisma.estantes.findMany({
       include: {
@@ -65,9 +62,6 @@ const getEstantes = async (_req, res) => {
   }
 };
 
-/**
- * Obtener estante por ID
- */
 const getEstanteById = async (req, res) => {
   const { id } = req.params;
 

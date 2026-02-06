@@ -2,14 +2,14 @@ import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
 
 const createProducto = async (req, res) => {
-  const { categoriaId,estantesId, locacion_id,nombre,codigo,color, descripcion,cantidad,medidas,precio_publico,precio_contratista,costo_compra,ganacia_publico,ganacia_contratista,ganancias_stock,foto } = req.body;
+  const { categoriaId,estantesId, ubicacion_id,nombre,codigo,color, descripcion,cantidad,medidas,precio_publico,precio_contratista,costo_compra,ganacia_publico,ganacia_contratista,ganancias_stock,foto } = req.body;
 
     // Validar los datos de entrada producto
     await check("categoriaId").notEmpty().isInt().withMessage("El ID de categoría es obligatorio y debe ser un número entero").run(req);
     await check("estantesId").notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
 
     // Validar los datos de entrada variante
-    await check("locacion_id").notEmpty().isInt().withMessage("El ID de locación es obligatorio y debe ser un número entero").run(req);
+    await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
     await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
     await check("codigo").notEmpty().isString().withMessage("El código de la variante es obligatorio y debe ser una cadena de texto").run(req);
     await check("color").notEmpty().isString().withMessage("El color de la variante es obligatorio y debe ser una cadena de texto").run(req);
@@ -29,39 +29,51 @@ const createProducto = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-
+    
   try {
+    // Parsear valores numéricos
+    const categoriaIdInt = parseInt(categoriaId, 10);
+    const estantesIdInt = parseInt(estantesId, 10);
+    const ubicacionIdInt = parseInt(ubicacion_id, 10);
+    const cantidadInt = parseInt(cantidad, 10);
+    const precioPublicoFloat = parseFloat(precio_publico);
+    const precioContratistaFloat = parseFloat(precio_contratista);
+    const costoCompraFloat = parseFloat(costo_compra);
+    const gananciaPublicoFloat = parseFloat(ganacia_publico);
+    const gananciaContratistaFloat = parseFloat(ganacia_contratista);
+    const gananciasStockFloat = parseFloat(ganancias_stock);
+
     // Crear el producto
     const productoCreado = await prisma.productos.create({
       data: {
-        categoriaId,
-        estantesId,
+        categoriaId: categoriaIdInt,
+        estantesId: estantesIdInt,
       },
     });
 
     // Crear variante básica relacionada con el producto
     await prisma.variantes.create({
       data: {
-        productoId: productoCreado.id,
-        locacion_id,
-        estantesId,
+        producto_id: productoCreado.id,
+        ubicacion_id: ubicacionIdInt,
+        estante_id: estantesIdInt,
         nombre,
         codigo,
         color,
         descripcion,
-        cantidad,
+        cantidad: cantidadInt,
         medidas,
-        precio_publico,
-        precio_contratista,
-        costo_compra,
-        ganacia_publico,
-        ganacia_contratista,
-        ganancias_stock,
+        precio_publico: precioPublicoFloat,
+        precio_contratista: precioContratistaFloat,
+        costo_compra: costoCompraFloat,
+        ganacia_publico: gananciaPublicoFloat,
+        ganacia_contratista: gananciaContratistaFloat,
+        ganancias_stock: gananciasStockFloat,
         foto,
       },
     });
 
-    res.status(201).json("Producto y variante básica creados con éxito");
+    res.status(200).json("Producto y variante básica creados con éxito");
   } catch (error) {
     console.error("Error al crear el producto:", error);
     res.status(500).json({ error: "Error al crear el producto" });
@@ -70,10 +82,10 @@ const createProducto = async (req, res) => {
 
 const crearVariante = async (req, res) => {
   
-  const {estantesId, locacion_id, productoId, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
+  const {estantesId, ubicacion_id, productoId, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
 
     // Validar los datos de entrada variante
-    await check("locacion_id").notEmpty().isInt().withMessage("El ID de locación es obligatorio y debe ser un número entero").run(req);
+    await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
     await check("estantesId",).notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
     await check("productoId").notEmpty().isInt().withMessage("El productoId es obligatorio y debe ser un número entero").run(req);
     await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
@@ -97,24 +109,35 @@ const crearVariante = async (req, res) => {
     }
 
     try {
+    // Parsear valores numéricos
+    const productoIdInt = parseInt(productoId, 10);
+    const estantesIdInt = parseInt(estantesId, 10);
+    const ubicacionIdInt = parseInt(ubicacion_id, 10);
+    const cantidadInt = parseInt(cantidad, 10);
+    const precioPublicoFloat = parseFloat(precio_publico);
+    const precioContratistaFloat = parseFloat(precio_contratista);
+    const costoCompraFloat = parseFloat(costo_compra);
+    const gananciaPublicoFloat = parseFloat(ganacia_publico);
+    const gananciaContratistaFloat = parseFloat(ganacia_contratista);
+    const gananciasStockFloat = parseFloat(ganancias_stock);
 
        await prisma.variantes.create({
       data: {
-        productoId,
-        locacion_id,
-        estantesId,
+        producto_id: productoIdInt,
+        ubicacion_id: ubicacionIdInt,
+        estante_id: estantesIdInt,
         nombre,
         codigo,
         color,
         descripcion,
-        cantidad,
+        cantidad: cantidadInt,
         medidas,
-        precio_publico,
-        precio_contratista,
-        costo_compra,
-        ganacia_publico,
-        ganacia_contratista,
-        ganancias_stock,
+        precio_publico: precioPublicoFloat,
+        precio_contratista: precioContratistaFloat,
+        costo_compra: costoCompraFloat,
+        ganacia_publico: gananciaPublicoFloat,
+        ganacia_contratista: gananciaContratistaFloat,
+        ganancias_stock: gananciasStockFloat,
         foto,
       },
     });
@@ -128,10 +151,10 @@ const crearVariante = async (req, res) => {
 const updateVariante = async (req, res) => {
   
   const {varianteId} = req.params;
-  const {estantesId, locacion_id, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
+  const {estantesId, ubicacion_id, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
 
     // Validar los datos de entrada variante
-    await check("locacion_id").notEmpty().isInt().withMessage("El ID de locación es obligatorio y debe ser un número entero").run(req);
+    await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
     await check("estantesId",).notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
     await check("productoId").notEmpty().isInt().withMessage("El productoId es obligatorio y debe ser un número entero").run(req);
     await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
@@ -154,24 +177,35 @@ const updateVariante = async (req, res) => {
     }
 
     try {
+    // Parsear valores numéricos
+    const varianteIdInt = parseInt(varianteId, 10);
+    const estantesIdInt = parseInt(estantesId, 10);
+    const ubicacionIdInt = parseInt(ubicacion_id, 10);
+    const cantidadInt = parseInt(cantidad, 10);
+    const precioPublicoFloat = parseFloat(precio_publico);
+    const precioContratistaFloat = parseFloat(precio_contratista);
+    const costoCompraFloat = parseFloat(costo_compra);
+    const gananciaPublicoFloat = parseFloat(ganacia_publico);
+    const gananciaContratistaFloat = parseFloat(ganacia_contratista);
+    const gananciasStockFloat = parseFloat(ganancias_stock);
 
        await prisma.variantes.update({
-      where: { id: parseInt(varianteId) },
+      where: { id: varianteIdInt },
       data: {
-        locacion_id,
-        estantesId,
+        ubicacion_id: ubicacionIdInt,
+        estante_id: estantesIdInt,
         nombre,
         codigo,
         color,
         descripcion,
-        cantidad,
+        cantidad: cantidadInt,
         medidas,
-        precio_publico,
-        precio_contratista,
-        costo_compra,
-        ganacia_publico,
-        ganacia_contratista,
-        ganancias_stock,
+        precio_publico: precioPublicoFloat,
+        precio_contratista: precioContratistaFloat,
+        costo_compra: costoCompraFloat,
+        ganacia_publico: gananciaPublicoFloat,
+        ganacia_contratista: gananciaContratistaFloat,
+        ganancias_stock: gananciasStockFloat,
         foto,
       },
     });
@@ -181,13 +215,6 @@ const updateVariante = async (req, res) => {
   }
 }
 
-
-/**
- * ============================
- * GET - Productos por categoría
- * ============================
- * /productos/categoria/:categoriaId
- */
 const getProductosByCategoria = async (req, res) => {
   const { categoriaId } = req.params;
 
@@ -214,12 +241,6 @@ const getProductosByCategoria = async (req, res) => {
   }
 };
 
-/**
- * =====================================
- * GET - Producto específico con variantes
- * =====================================
- * /productos/:id
- */
 const getProductoById = async (req, res) => {
   const { id } = req.params;
 
@@ -248,12 +269,6 @@ const getProductoById = async (req, res) => {
   }
 };
 
-/**
- * =====================================
- * GET - Productos por parámetros de búsqueda
- * =====================================
- * /productos/buscar?nombre=&color=&codigo=&categoria=
- */
 const getProductosBySearch = async (req, res) => {
   const { nombre, color, codigo, categoria } = req.query;
 

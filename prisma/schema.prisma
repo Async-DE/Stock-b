@@ -31,6 +31,7 @@ model ubicacion {
   createdAt DateTime @default(now())
 
   estantes estantes[]
+  variantes variantes[]
 }
 
 model estantes {
@@ -43,6 +44,7 @@ model estantes {
   ubicacion   ubicacion?  @relation(fields: [ubicacionId], references: [id])
   ubicacionId Int?
   productos   productos[]
+  variantes   variantes[]
   auditorias  auditoria[]
 }
 
@@ -73,8 +75,8 @@ model productos {
 model variantes {
   id          Int  @id @default(autoincrement())
   producto_id Int
-  locacion_id Int
-  estante_id  Int?
+  ubicacion_id Int
+  estante_id  Int
 
   foto String // se agregara un servicion de almacenamiento de imagenes
 
@@ -96,6 +98,8 @@ model variantes {
   ganancias_stock Float // ganacia total publico + contratista
 
   producto   productos?  @relation(fields: [producto_id], references: [id])
+  ubicacion  ubicacion?  @relation(fields: [ubicacion_id], references: [id])
+  estante    estantes?   @relation(fields: [estante_id], references: [id])
   ventas     ventas[]
   auditorias auditoria[]
 }
@@ -142,7 +146,6 @@ enum Accion {
   VENTA
   AJUSTE_STOCK
 }
-
 
 model auditoria {
   id Int @id @default(autoincrement())
