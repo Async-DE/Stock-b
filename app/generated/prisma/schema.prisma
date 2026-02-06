@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model usuario {
+  id          Int  @id @default(autoincrement())
+  productosId Int?
+
+  nombre      String
+  usuario     String   @unique
+  email_phone String   @unique
+  password    String //aplicar hash
+  createdAt   DateTime @default(now())
+
+  productos  productos?  @relation(fields: [productosId], references: [id])
+  auditorias auditoria[]
+}
+
+model ubicacion {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  calle     String
+  cp        String
+  colonia   String
+  celular   String
+  createdAt DateTime @default(now())
+
+  estantes estantes[]
+}
+
+model estantes {
+  id        Int      @id @default(autoincrement())
+  Seccion   String
+  nivel     Int
+  pasillo   Int
+  createdAt DateTime @default(now())
+
+  ubicacion   ubicacion?  @relation(fields: [ubicacionId], references: [id])
+  ubicacionId Int?
+  productos   productos[]
+  auditorias  auditoria[]
+}
+
+model categorias {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique
+  createdAt DateTime @default(now())
+
+  productos  productos[]
+  auditorias auditoria[]
+}
+
+model productos {
+  id          Int  @id @default(autoincrement())
+  categoriaId Int?
+
+  categoria categorias? @relation(fields: [categoriaId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  variantes  variantes[]
+  usuario    usuario[]
+  estantes   estantes?   @relation(fields: [estantesId], references: [id])
+  estantesId Int?
+  auditorias auditoria[]
+}
+
+model variantes {
+  id          Int  @id @default(autoincrement())
+  producto_id Int
+  locacion_id Int
+  estante_id  Int?
+
+  foto String // se agregara un servicion de almacenamiento de imagenes
+
+  nombre             String
+  codigo             String
+  color              String
+  descripcion        String
+  cantidad           Int
+  medidas            String
+  precio_publico     Float
+  precio_contratista Float
+  costo_compra       Float
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  ganacia_publico     Float // incrementa con cada venta realizada
+  ganacia_contratista Float // incrementa con cada venta realizada
+
+  ganancias_stock Float // ganacia total publico + contratista
+
+  producto   productos?  @relation(fields: [producto_id], references: [id])
+  ventas     ventas[]
+  auditorias auditoria[]
+}
+
+model ventas {
+  id                 Int      @id @default(autoincrement())
+  variante_id        Int
+  cantidad           Int
+  total_venta        Float
+  fecha_venta        DateTime @default(now())
+  nombre_cliente     String
+  contacto_cliente   String
+  costos_extras      Float
+  motivo_costo_extra String
+
+  // Timestamp de la información del producto
+  precio_publico     Float
+  precio_contratista Float
+  costo_compra       Float
+
+  variante variantes? @relation(fields: [variante_id], references: [id])
+
+  // Relación con costos extras
+  costosExtras costosExtras[]
+  auditorias   auditoria[]
+}
+
+model costosExtras {
+  id        Int      @id @default(autoincrement())
+  venta_id  Int
+  motivo    String
+  costo     Float
+  createdAt DateTime @default(now())
+
+  // Relación con ventas
+  venta ventas @relation(fields: [venta_id], references: [id])
+}
+
+enum Accion {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  VENTA
+  AJUSTE_STOCK
+}
+
+model auditoria {
+  id Int @id @default(autoincrement())
+
+  usuario_id Int
+  accion     Accion
+
+  productoId Int?
+  producto   productos? @relation(fields: [productoId], references: [id], map: "auditoria_producto_fkey")
+
+  varianteId Int?
+  variante   variantes? @relation(fields: [varianteId], references: [id], map: "auditoria_variante_fkey")
+
+  ventaId Int?
+  venta   ventas? @relation(fields: [ventaId], references: [id], map: "auditoria_venta_fkey")
+
+  estanteId Int?
+  estante   estantes? @relation(fields: [estanteId], references: [id], map: "auditoria_estante_fkey")
+
+  categoriaId Int?
+  categoria   categorias? @relation(fields: [categoriaId], references: [id], map: "auditoria_categoria_fkey")
+
+  createdAt DateTime @default(now())
+
+  usuario usuario @relation(fields: [usuario_id], references: [id], map: "auditoria_usuario_fkey")
+
+  @@index([usuario_id])
+  @@index([productoId])
+  @@index([varianteId])
+  @@index([ventaId])
+  @@index([estanteId])
+  @@index([categoriaId])
+}
