@@ -106,6 +106,8 @@ model ventas {
   cantidad    Int
   total_venta Float
   fecha_venta DateTime @default(now())
+  nombre_cliente String
+  contacto_cliente String
 
   // Timestamp de la información del producto
   precio_publico     Float
