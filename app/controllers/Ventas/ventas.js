@@ -4,13 +4,14 @@ import { check, validationResult } from "express-validator";
 const createVenta = async (req, res) => {
     const { varianteId, cantidad, total_venta, nombre_cliente, contacto_cliente, costos_extras, motivo_costo_extra } = req.body;
 
-    check("varianteId").notEmpty().isInt().withMessage("varianteId debe ser un entero");
-    check("cantidad").notEmpty().isInt().withMessage("cantidad debe ser un entero");
-    check("total_venta").notEmpty().isFloat().withMessage("total_venta debe ser un número decimal");
-    check("nombre_cliente").notEmpty().isString().withMessage("nombre_cliente debe ser una cadena de texto");
-    check("contacto_cliente").notEmpty().isString().withMessage("contacto_cliente debe ser una cadena de texto");
-    check("costos_extras").optional().isFloat().withMessage("costos_extras debe ser un número decimal");
-    check("motivo_costo_extra").optional().isString().withMessage("motivo_costo_extra debe ser una cadena de texto");
+    // Ejecutar validaciones await para que validationResult funcione correctamente
+    await check("varianteId").notEmpty().isInt().withMessage("varianteId debe ser un entero").run(req);
+    await check("cantidad").notEmpty().isInt().withMessage("cantidad debe ser un entero").run(req);
+    await check("total_venta").notEmpty().isFloat().withMessage("total_venta debe ser un número decimal").run(req);
+    await check("nombre_cliente").notEmpty().isString().withMessage("nombre_cliente debe ser una cadena de texto").run(req);
+    await check("contacto_cliente").notEmpty().isString().withMessage("contacto_cliente debe ser una cadena de texto").run(req);
+    await check("costos_extras").optional().isFloat().withMessage("costos_extras debe ser un número decimal").run(req);
+    await check("motivo_costo_extra").optional().isString().withMessage("motivo_costo_extra debe ser una cadena de texto").run(req);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -18,8 +19,13 @@ const createVenta = async (req, res) => {
     }
 
     try {
+        const varianteIdInt = parseInt(varianteId, 10);
+        const cantidadInt = parseInt(cantidad, 10);
+        const totalVentaFloat = parseFloat(total_venta);
+        const costosExtrasFloat = costos_extras ? parseFloat(costos_extras) : 0; // Valor por defecto si es opcional
+
         const variante = await prisma.variantes.findUnique({
-            where: { id: varianteId },
+            where: { id: varianteIdInt },
         });
 
         if (!variante) {
@@ -29,31 +35,31 @@ const createVenta = async (req, res) => {
 
         const nuevaVenta = await prisma.ventas.create({
             data: {
-                varianteId,
-                cantidad,
-                total_venta,
+                variante_id: varianteIdInt, // Corregido: variante_id en schema vs varianteId en body
+                cantidad: cantidadInt,
+                total_venta: totalVentaFloat,
                 nombre_cliente,
                 contacto_cliente,
                 precio_publico,
                 precio_contratista,
                 costo_compra,
-                costos_extras,
-                motivo_costo_extra
+                costos_extras: costosExtrasFloat,
+                motivo_costo_extra: motivo_costo_extra || "", // Asegurar string si es requerido o null
             },
         });
         res.status(201).json(nuevaVenta);
     } catch (error) {
-        res.status(500).json({ error: "Error al crear la venta" });
+        console.error("Error al crear venta:", error);
+        res.status(500).json({ error: "Error al crear la venta", details: error.message });
     }
 };
 
-//Obtener salidas de producto por rango de fechas
 const getVentasByDateRange = async (req, res) => {
     const { startDate, endDate } = req.body;
     try {
         const ventas = await prisma.ventas.findMany({
             where: {
-                createdAt: {
+                fecha_venta: {
                     gte: new Date(startDate),
                     lte: new Date(endDate),
                 },
@@ -61,11 +67,10 @@ const getVentasByDateRange = async (req, res) => {
         });
         res.status(200).json(ventas);
     } catch (error) {
-        res.status(500).json({ error: "Error al obtener las ventas" });
+        res.status(500).json({ error: "Error al obtener las ventas", details: error.message });
     }
 };
 
-//Obtener salida de producto por nombre de cliente o contacto (By Search)
 const searchVentas = async (req, res) => {
     const { search } = req.body;
     try {

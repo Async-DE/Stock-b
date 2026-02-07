@@ -52,7 +52,6 @@ const getEstantes = async (req, res) => {
     const estantes = await prisma.estantes.findMany({
       include: {
         ubicacion: true,
-        productos: true,
       },
     });
 
@@ -70,7 +69,6 @@ const getEstanteById = async (req, res) => {
       where: { id: parseInt(id) },
       include: {
         ubicacion: true,
-        productos: true,
       },
     });
 
