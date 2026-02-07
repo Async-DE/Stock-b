@@ -14,7 +14,7 @@ router.post("/crear", createProducto);
 
 router.get("/ver/:id", getProductoById);
 
-router.get("/verbuscar", getProductosBySearch);
+router.post("/verbuscar", getProductosBySearch);
 
 router.get("/ver/categoria/:categoriaId", getProductosByCategoria);
 //--------------------------------------------------------
@@ -24,3 +24,4 @@ router.put("/variantes/actualizar/:varianteId", updateVariante);
 
 
 export default router;
+ 

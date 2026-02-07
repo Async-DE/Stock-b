@@ -47,7 +47,6 @@ const createProducto = async (req, res) => {
     const productoCreado = await prisma.productos.create({
       data: {
         categoriaId: categoriaIdInt,
-        estantesId: estantesIdInt,
       },
     });
 
@@ -156,7 +155,6 @@ const updateVariante = async (req, res) => {
     // Validar los datos de entrada variante
     await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
     await check("estantesId",).notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
-    await check("productoId").notEmpty().isInt().withMessage("El productoId es obligatorio y debe ser un número entero").run(req);
     await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
     await check("codigo").notEmpty().isString().withMessage("El código de la variante es obligatorio y debe ser una cadena de texto").run(req);
     await check("color").notEmpty().isString().withMessage("El color de la variante es obligatorio y debe ser una cadena de texto").run(req);
@@ -210,8 +208,9 @@ const updateVariante = async (req, res) => {
       },
     });
     res.status(200).json("Variante actualizada con éxito");
+
   } catch (error) {
-    res.status(500).json({ error: "Error al actualizar la variante" });
+    res.status(500).json({ error: "Error al actualizar la variante", details: error.message });
   }
 }
 
@@ -224,16 +223,24 @@ const getProductosByCategoria = async (req, res) => {
         categoriaId: parseInt(categoriaId),
       },
       include: {
-        categoria: true,
-        estantes: {
-          include: {
-            ubicacion: true,
-          },
+        categoria: {
+          select: {
+            nombre: true,
+          }
         },
-        variantes: true,
+        variantes:{
+          select: {
+            nombre: true,
+            color: true,
+            medidas: true
+          }
+        },
       },
     });
 
+    if (productos.length === 0) {
+      return res.status(404).json({ error: "No se Encontraron productos para esta categoría" });
+    }
     res.status(200).json(productos);
   } catch (error) {
     console.error(error);
@@ -248,17 +255,16 @@ const getProductoById = async (req, res) => {
     const producto = await prisma.productos.findUnique({
       where: { id: parseInt(id) },
       include: {
-        categoria: true,
-        estantes: {
-          include: {
-            ubicacion: true,
-          },
+        categoria: {
+          select: {
+            nombre: true,
+          }
         },
         variantes: true,
       },
     });
 
-    if (!producto) {
+    if (producto.length === 0) {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
 
@@ -270,45 +276,46 @@ const getProductoById = async (req, res) => {
 };
 
 const getProductosBySearch = async (req, res) => {
-  const { nombre, color, codigo, categoria } = req.query;
+  const { search } = req.body;
 
   try {
     const productos = await prisma.productos.findMany({
       where: {
-        categoria: categoria
-          ? { nombre: { contains: categoria, mode: "insensitive" } }
-          : undefined,
-        variantes: {
-          some: {
-            AND: [
-              nombre
-                ? { nombre: { contains: nombre, mode: "insensitive" } }
-                : {},
-              color
-                ? { color: { contains: color, mode: "insensitive" } }
-                : {},
-              codigo
-                ? { codigo: { contains: codigo, mode: "insensitive" } }
-                : {},
-            ],
-          },
-        },
+        OR: [
+            { categoria: { nombre: { contains: search, mode: "insensitive" } } },
+            {
+                variantes: {
+                    some: {
+                        OR: [
+                            { nombre: { contains: search, mode: "insensitive" } },
+                            { color: { contains: search, mode: "insensitive" } },
+                            { codigo: { contains: search, mode: "insensitive" } }
+                        ]
+                    }
+                }
+            }
+        ]
       },
       include: {
-        categoria: true,
-        estantes: {
-          include: {
-            ubicacion: true,
-          },
+        categoria: {
+          select: {
+            nombre: true,
+          }
         },
-        variantes: true,
+        variantes: {
+            select: {
+                nombre: true,
+                color: true,
+                medidas: true
+            }
+        },
       },
     });
 
     res.status(200).json(productos);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error al buscar productos" });
+    console.error("Error al buscar productos:", error);
+    res.status(500).json({ error: "Error al buscar productos", details: error.message });
   }
 };
 
