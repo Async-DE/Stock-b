@@ -2,9 +2,6 @@ import bcrypt from "bcryptjs";
 import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
 
-/* =========================
-   CREATE USUARIO
-   ========================= */
 const createUsuario = async (req, res) => {
   await check("nombre")
     .notEmpty()
@@ -49,8 +46,6 @@ const createUsuario = async (req, res) => {
       },
     });
 
-    // Auditoría
-    // TODO: cuando exista auth, usar req.user.id
     await prisma.auditoria.create({
       data: {
         usuario_id: nuevoUsuario.id,
@@ -58,19 +53,16 @@ const createUsuario = async (req, res) => {
       },
     });
 
-    // No devolver password
     const { password: _, ...usuarioSeguro } = nuevoUsuario;
 
     res.status(201).json(usuarioSeguro);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al crear usuario" });
   }
 };
 
-/* =========================
-   UPDATE ESTADO USUARIO
-   ========================= */
 const updateEstadoUsuario = async (req, res) => {
   const { id } = req.params;
 
@@ -87,9 +79,10 @@ const updateEstadoUsuario = async (req, res) => {
   try {
     const { estado } = req.body;
 
+
     const usuarioActualizado = await prisma.usuario.update({
       where: { id: parseInt(id) },
-      data: { estado },
+      data: { estado: estado === 'true' || estado === true }, // Manejar string "true" o booleano real
     });
 
     // Auditoría
@@ -105,14 +98,11 @@ const updateEstadoUsuario = async (req, res) => {
 
     res.status(200).json(usuarioSeguro);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error al actualizar estado del usuario" });
+    console.error("Error al actualizar estado:", error);
+    res.status(500).json({ error: "Error al actualizar estado del usuario", details: error.message });
   }
 };
 
-/* =========================
-   GET ALL USUARIOS (FILTROS)
-   ========================= */
 const getUsuarios = async (req, res) => {
   try {
     const { estado } = req.query;
@@ -142,9 +132,6 @@ const getUsuarios = async (req, res) => {
   }
 };
 
-/* =========================
-   AUDITORÍA GENERAL (últimas 20)
-   ========================= */
 const getAuditoriaGeneral = async (_req, res) => {
   try {
     const auditorias = await prisma.auditoria.findMany({
@@ -161,16 +148,16 @@ const getAuditoriaGeneral = async (_req, res) => {
       },
     });
 
-    res.status(200).json(auditorias);
+    const auditoriasLimpias = auditorias.map((a) =>
+      Object.fromEntries(Object.entries(a).filter(([_, v]) => v !== null))
+    );
+
+    res.status(200).json(auditoriasLimpias);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error al obtener auditoría" });
+    res.status(500).json({ error: "Error al obtener auditoría", details: error.message });
   }
 };
 
-/* =========================
-   AUDITORÍA POR USUARIO (últimas 20)
-   ========================= */
 const getAuditoriaPorUsuario = async (req, res) => {
   const { id } = req.params;
 
@@ -181,7 +168,11 @@ const getAuditoriaPorUsuario = async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.status(200).json(auditorias);
+    const auditoriasLimpias = auditorias.map((a) =>
+      Object.fromEntries(Object.entries(a).filter(([_, v]) => v !== null))
+    );
+
+    res.status(200).json(auditoriasLimpias);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al obtener auditoría del usuario" });
