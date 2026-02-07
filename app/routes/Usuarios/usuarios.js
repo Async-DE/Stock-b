@@ -11,8 +11,8 @@ const router = express.Router();
 
 /* Usuarios */
 router.post('/crear', createUsuario);
-router.patch('/:id/estado', updateEstadoUsuario);
-router.get('/', getUsuarios);
+router.put('/estado/:id', updateEstadoUsuario);
+router.get('/ver', getUsuarios);
 
 /* Auditoría */
 router.get('/auditoria/general', getAuditoriaGeneral);
