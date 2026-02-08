@@ -39,9 +39,12 @@ const createEstante = async (req, res) => {
         Seccion: seccion,
         ubicacionId: ubicacionIdInt,
       },
+      include: {
+        ubicacion: true,
+      },
     });
 
-    res.status(200).json("Estante creado con éxito");
+    res.status(201).json(estante);
   } catch (error) {
     res.status(500).json({ error: "Error al crear el estante" });
   }

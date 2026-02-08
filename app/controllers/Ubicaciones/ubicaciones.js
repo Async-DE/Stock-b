@@ -18,7 +18,7 @@ const createUbicacion = async (req, res) => {
   }
 
   try {
-    await prisma.ubicacion.create({
+    const ubicacion = await prisma.ubicacion.create({
       data: {
         nombre,
         calle,
@@ -28,7 +28,7 @@ const createUbicacion = async (req, res) => {
       },
     });
 
-    res.status(201).json("Ubicación creada con éxito");
+    res.status(201).json(ubicacion);
   } catch (error) {
     res.status(500).json({ error: "Error al crear la ubicación" });
   }
@@ -57,7 +57,7 @@ const updateUbicacion = async (req, res) => {
     if (!ubicacionExistente) {
       return res.status(404).json({ error: "Ubicación no encontrada" });
     }
-    await prisma.ubicacion.update({
+    const ubicacionActualizada = await prisma.ubicacion.update({
       where: { id: parseInt(id) },
       data: {
         nombre,
@@ -67,7 +67,7 @@ const updateUbicacion = async (req, res) => {
         celular,
       },
     });
-    res.status(200).json("Ubicación actualizada con éxito");
+    res.status(200).json(ubicacionActualizada);
   } catch (error) {
     res.status(500).json({ error: "Error al actualizar la ubicación" });
   }

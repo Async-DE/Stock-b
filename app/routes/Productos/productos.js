@@ -1,3 +1,9 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Productos
+ *   description: Gestión de productos y variantes
+ */
 import express from "express";
 import {
   createProducto,
