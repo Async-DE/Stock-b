@@ -1,3 +1,9 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Ventas
+ *   description: Registro y consultas de ventas
+ */
 import express from "express";
 import { createVenta, getVentasByDateRange,searchVentas } from "../../controllers/Ventas/ventas.js";
 

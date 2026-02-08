@@ -1,3 +1,9 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Ubicaciones
+ *   description: Gestión de ubicaciones físicas
+ */
 import express from "express";
 import { createUbicacion, updateUbicacion,getUbicaciones } from "../../controllers/Ubicaciones/ubicaciones.js";
 
