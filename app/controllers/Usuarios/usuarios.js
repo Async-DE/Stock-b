@@ -85,11 +85,10 @@ const updateEstadoUsuario = async (req, res) => {
       data: { estado: estado === 'true' || estado === true }, // Manejar string "true" o booleano real
     });
 
-    // Auditoría
-    // TODO: reemplazar usuarioActualizado.id por req.user.id cuando exista auth
+    // Registrar en auditoría (usuario que realiza la acción, no el usuario modificado)
     await prisma.auditoria.create({
       data: {
-        usuario_id: usuarioActualizado.id,
+        usuario_id: req.user.id,
         accion: "UPDATE",
       },
     });
@@ -132,57 +131,8 @@ const getUsuarios = async (req, res) => {
   }
 };
 
-const getAuditoriaGeneral = async (_req, res) => {
-  try {
-    const auditorias = await prisma.auditoria.findMany({
-      take: 20,
-      orderBy: { createdAt: "desc" },
-      include: {
-        usuario: {
-          select: {
-            id: true,
-            nombre: true,
-            usuario: true,
-          },
-        },
-      },
-    });
-
-    const auditoriasLimpias = auditorias.map((a) =>
-      Object.fromEntries(Object.entries(a).filter(([_, v]) => v !== null))
-    );
-
-    res.status(200).json(auditoriasLimpias);
-  } catch (error) {
-    res.status(500).json({ error: "Error al obtener auditoría", details: error.message });
-  }
-};
-
-const getAuditoriaPorUsuario = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const auditorias = await prisma.auditoria.findMany({
-      where: { usuario_id: parseInt(id) },
-      take: 20,
-      orderBy: { createdAt: "desc" },
-    });
-
-    const auditoriasLimpias = auditorias.map((a) =>
-      Object.fromEntries(Object.entries(a).filter(([_, v]) => v !== null))
-    );
-
-    res.status(200).json(auditoriasLimpias);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error al obtener auditoría del usuario" });
-  }
-};
-
 export {
   createUsuario,
   updateEstadoUsuario,
   getUsuarios,
-  getAuditoriaGeneral,
-  getAuditoriaPorUsuario,
 };

@@ -47,6 +47,7 @@ model ubicacion {
 
   estantes estantes[]
   variantes variantes[]
+  auditorias auditoria[]
 }
 
 model estantes {
@@ -82,6 +83,7 @@ model subcategorias {
   categoria   categorias @relation(fields: [categoriaId], references: [id])
 
   productos productos[]
+  auditorias auditoria[]
 }
 
 model productos {
@@ -193,6 +195,12 @@ model auditoria {
   categoriaId Int?
   categoria   categorias? @relation(fields: [categoriaId], references: [id], map: "auditoria_categoria_fkey")
 
+  subcategoriaId Int?
+  subcategoria   subcategorias? @relation(fields: [subcategoriaId], references: [id], map: "auditoria_subcategoria_fkey")
+
+  ubicacionId Int?
+  ubicacion   ubicacion? @relation(fields: [ubicacionId], references: [id], map: "auditoria_ubicacion_fkey")
+
   createdAt DateTime @default(now())
 
   usuario usuario @relation(fields: [usuario_id], references: [id], map: "auditoria_usuario_fkey")
@@ -203,4 +211,6 @@ model auditoria {
   @@index([ventaId])
   @@index([estanteId])
   @@index([categoriaId])
+  @@index([subcategoriaId])
+  @@index([ubicacionId])
 }

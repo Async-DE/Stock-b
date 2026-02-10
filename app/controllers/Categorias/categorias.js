@@ -21,10 +21,19 @@ const createCategoria = async (req, res) => {
   }
 
   try {
-    await prisma.categorias.create({
+    const nuevaCategoria = await prisma.categorias.create({
       data: {
         nombre
       },
+    });
+
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'CREATE',
+        categoriaId: nuevaCategoria.id
+      }
     });
 
     res.status(201).json("Categoría creada con éxito");
@@ -57,6 +66,16 @@ const updateCategoria = async (req, res) => {
       where: { id: parseInt(id) },
       data: { nombre },
     });
+
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'UPDATE',
+        categoriaId: parseInt(id)
+      }
+    });
+
     res.status(200).json("Categoría actualizada con éxito");
   } catch (error) {
     res.status(500).json({ error: "Error al actualizar la categoría" });

@@ -28,6 +28,15 @@ const createUbicacion = async (req, res) => {
       },
     });
 
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'CREATE',
+        ubicacionId: ubicacion.id
+      }
+    });
+
     res.status(201).json(ubicacion);
   } catch (error) {
     res.status(500).json({ error: "Error al crear la ubicación" });
@@ -67,6 +76,16 @@ const updateUbicacion = async (req, res) => {
         celular,
       },
     });
+
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'UPDATE',
+        ubicacionId: parseInt(id)
+      }
+    });
+
     res.status(200).json(ubicacionActualizada);
   } catch (error) {
     res.status(500).json({ error: "Error al actualizar la ubicación" });

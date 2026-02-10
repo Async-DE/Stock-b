@@ -8,6 +8,7 @@ import ventasRoutes from './Ventas/ventas.js';
 import categoriasRoutes from './Categorias/categorias.js';
 import subcategoriasRoutes from './SubCategorias/subcategorias.js';
 import usuariosRoutes from './Usuarios/usuarios.js';
+import auditoriaRoutes from './Auditoria/auditoria.js';
 const router = express.Router();
 
 // Rutas de autenticación (sin protección)
@@ -21,6 +22,7 @@ router.use("/ventas", ventasRoutes);
 router.use("/categorias", categoriasRoutes);
 router.use("/subcategorias", subcategoriasRoutes);
 router.use("/usuarios", usuariosRoutes);
+router.use("/auditoria", auditoriaRoutes);
 
 export default router;
 

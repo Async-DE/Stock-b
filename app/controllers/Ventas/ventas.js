@@ -47,6 +47,17 @@ const createVenta = async (req, res) => {
                 motivo_costo_extra: motivo_costo_extra || "", // Asegurar string si es requerido o null
             },
         });
+
+        // Registrar en auditoría
+        await prisma.auditoria.create({
+            data: {
+                usuario_id: req.user.id,
+                accion: 'VENTA',
+                varianteId: varianteIdInt,
+                ventaId: nuevaVenta.id
+            }
+        });
+
         res.status(201).json(nuevaVenta);
     } catch (error) {
         console.error("Error al crear venta:", error);
