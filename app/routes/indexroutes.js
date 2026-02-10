@@ -1,5 +1,6 @@
 import express from 'express';
 
+import authRoutes from './Auth/auth.js';
 import ubicacionesRoutes from './Ubicaciones/ubicaciones.js';
 import estantesRoutes from './Estantes/estantes.js';
 import productosRoutes from './Productos/productos.js';
@@ -9,6 +10,10 @@ import subcategoriasRoutes from './SubCategorias/subcategorias.js';
 import usuariosRoutes from './Usuarios/usuarios.js';
 const router = express.Router();
 
+// Rutas de autenticación (sin protección)
+router.use("/auth", authRoutes);
+
+// Rutas protegidas
 router.use("/ubicaciones", ubicacionesRoutes);
 router.use("/estantes", estantesRoutes);
 router.use("/productos", productosRoutes);

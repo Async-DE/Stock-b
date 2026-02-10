@@ -87,7 +87,7 @@ npm start
 Acceder a la documentación en:
 
 ```
-http://localhost:3000/api-docs
+http://localhost:3730/api-docs
 ```
 
 ---

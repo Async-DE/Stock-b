@@ -1,9 +1,3 @@
-/**
- * @swagger
- * tags:
- *   name: Usuarios
- *   description: Gestión de usuarios y auditoría
- */
 import express from 'express';
 import {
   createUsuario,
@@ -12,16 +6,17 @@ import {
   getAuditoriaGeneral,
   getAuditoriaPorUsuario
 } from '../../controllers/Usuarios/usuarios.js';
+import { authMiddleware } from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 /* Usuarios */
 router.post('/crear', createUsuario);
-router.put('/estado/:id', updateEstadoUsuario);
-router.get('/ver', getUsuarios);
+router.put('/estado/:id', authMiddleware, updateEstadoUsuario);
+router.get('/ver', authMiddleware, getUsuarios);
 
 /* Auditoría */
-router.get('/auditoria/general', getAuditoriaGeneral);
-router.get('/auditoria/usuario/:id', getAuditoriaPorUsuario);
+router.get('/auditoria/general', authMiddleware, getAuditoriaGeneral);
+router.get('/auditoria/usuario/:id', authMiddleware, getAuditoriaPorUsuario);
 
 export default router;

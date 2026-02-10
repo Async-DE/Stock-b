@@ -20,6 +20,20 @@ model usuario {
   updatedAt DateTime @updatedAt
 
   auditorias auditoria[]
+  sesiones   sesion[]
+}
+
+model sesion {
+  id        Int      @id @default(autoincrement())
+  usuario_id Int
+  token     String   @unique
+  revocado  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  usuario usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@index([usuario_id])
+  @@index([token])
 }
 
 model ubicacion {
@@ -153,6 +167,7 @@ enum Accion {
   UPDATE
   DELETE
   LOGIN
+  LOGOUT
   VENTA
   AJUSTE_STOCK
 }

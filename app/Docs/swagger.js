@@ -25,6 +25,10 @@ API backend para control de inventarios, productos, usuarios y ventas.
 
   tags: [
     {
+      name: "Autenticación",
+      description: "Endpoints de login y logout con JWT",
+    },
+    {
       name: "Usuarios",
       description: "Gestión de usuarios y estados",
     },
@@ -51,6 +55,163 @@ API backend para control de inventarios, productos, usuarios y ventas.
   ],
 
   paths: {
+    /* ============================
+       AUTENTICACIÓN
+    ============================ */
+
+    "/auth/login": {
+      post: {
+        tags: ["Autenticación"],
+        summary: "Iniciar sesión",
+        description: "Autentica un usuario con su usuario/email-teléfono y contraseña. Retorna un token JWT sin expiración.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Login",
+              },
+              example: {
+                usuario_email: "usuario123",
+                password: "micontraseña",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Login exitoso",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/LoginResponse",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Errores de validación",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ValidationError",
+                },
+              },
+            },
+          },
+          401: {
+            description: "Credenciales inválidas",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "Usuario o contraseña incorrectos",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: "Usuario inactivo",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "Usuario inactivo",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    "/auth/logout": {
+      post: {
+        tags: ["Autenticación"],
+        summary: "Cerrar sesión",
+        description: "Revoca la sesión actual. Requiere token JWT válido.",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Logout exitoso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    mensaje: {
+                      type: "string",
+                      example: "Logout exitoso",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Token inválido o expirado",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    "/auth/logout-todas": {
+      post: {
+        tags: ["Autenticación"],
+        summary: "Revocar todas las sesiones",
+        description: "Revoca todas las sesiones activas del usuario actual. Útil después de cambio de contraseña.",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Todas las sesiones revocadas",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    mensaje: {
+                      type: "string",
+                      example: "Todas las sesiones han sido revocadas",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Token inválido o expirado",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
     /* ============================
        USUARIOS
     ============================ */
@@ -937,6 +1098,46 @@ API backend para control de inventarios, productos, usuarios y ventas.
   components: {
     schemas: {
       /* ============================
+          AUTENTICACIÓN
+      ============================ */
+
+      Login: {
+        type: "object",
+        required: ["usuario_email", "password"],
+        properties: {
+          usuario_email: {
+            type: "string",
+            description: "Nombre de usuario, email o teléfono",
+            example: "usuario123"
+          },
+          password: {
+            type: "string",
+            format: "password",
+            description: "Contraseña del usuario",
+            example: "micontraseña"
+          },
+        },
+      },
+
+      LoginResponse: {
+        type: "object",
+        properties: {
+          mensaje: {
+            type: "string",
+            example: "Login exitoso",
+          },
+          token: {
+            type: "string",
+            description: "JWT sin expiración",
+            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          },
+          usuario: {
+            $ref: "#/components/schemas/Usuario",
+          },
+        },
+      },
+
+      /* ============================
           USUARIOS
       ============================ */
 
@@ -1733,6 +1934,14 @@ API backend para control de inventarios, productos, usuarios y ventas.
         },
       },
     },
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "JWT token sin expiración. Incluir en header: Authorization: Bearer {token}"
+      }
+    }
   },
 };
 

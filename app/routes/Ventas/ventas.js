@@ -1,18 +1,13 @@
-/**
- * @swagger
- * tags:
- *   name: Ventas
- *   description: Registro y consultas de ventas
- */
 import express from "express";
 import { createVenta, getVentasByDateRange,searchVentas } from "../../controllers/Ventas/ventas.js";
+import { authMiddleware } from "../../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/crear", createVenta);
+router.post("/crear", authMiddleware, createVenta);
 
-router.post("/verRango", getVentasByDateRange);
+router.post("/verRango", authMiddleware, getVentasByDateRange);
 
-router.post("/verbuscar", searchVentas);
+router.post("/verbuscar", authMiddleware, searchVentas);
 
 export default router;
