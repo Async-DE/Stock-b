@@ -2,37 +2,45 @@ import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
 
 const createProducto = async (req, res) => {
-  const { categoriaId,estantesId, ubicacion_id,nombre,codigo,color, descripcion,cantidad,medidas,precio_publico,precio_contratista,costo_compra,ganacia_publico,ganacia_contratista,ganancias_stock,foto } = req.body;
+  const { subcategoriaId, estantesId, ubicacion_id, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
 
-    // Validar los datos de entrada producto
-    await check("categoriaId").notEmpty().isInt().withMessage("El ID de categoría es obligatorio y debe ser un número entero").run(req);
-    await check("estantesId").notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
+  // Validar los datos de entrada producto
+  await check("subcategoriaId").notEmpty().isInt().withMessage("El ID de subcategoría es obligatorio y debe ser un número entero").run(req);
+  await check("estantesId").notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
 
-    // Validar los datos de entrada variante
-    await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
-    await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("codigo").notEmpty().isString().withMessage("El código de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("color").notEmpty().isString().withMessage("El color de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("descripcion").notEmpty().isString().withMessage("La descripción de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("cantidad").notEmpty().isInt().withMessage("La cantidad de la variante es obligatorio y debe ser un número entero").run(req);
-    await check("medidas").notEmpty().isString().withMessage("Las medidas de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("precio_publico").notEmpty().isFloat().withMessage("El precio público de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("precio_contratista").notEmpty().isFloat().withMessage("El precio contratista de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("costo_compra").notEmpty().isFloat().withMessage("El costo de compra de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  // Validar los datos de entrada variante
+  await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
+  await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("codigo").notEmpty().isString().withMessage("El código de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("color").notEmpty().isString().withMessage("El color de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("descripcion").notEmpty().isString().withMessage("La descripción de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("cantidad").notEmpty().isInt().withMessage("La cantidad de la variante es obligatorio y debe ser un número entero").run(req);
+  await check("medidas").notEmpty().isString().withMessage("Las medidas de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("precio_publico").notEmpty().isFloat().withMessage("El precio público de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("precio_contratista").notEmpty().isFloat().withMessage("El precio contratista de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("costo_compra").notEmpty().isFloat().withMessage("El costo de compra de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
 
-    const errors = validationResult(req);
+  const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-    
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  //Validar que el codigo no exista en la base de datos
+  var productoExistente = await prisma.variantes.findUnique({
+    where: { codigo },
+  });
+  if (productoExistente) {
+    return res.status(400).json({ error: "La variante ya existe" });
+  }
+
   try {
     // Parsear valores numéricos
-    const categoriaIdInt = parseInt(categoriaId, 10);
+    const subcategoriaIdInt = parseInt(subcategoriaId, 10);
     const estantesIdInt = parseInt(estantesId, 10);
     const ubicacionIdInt = parseInt(ubicacion_id, 10);
     const cantidadInt = parseInt(cantidad, 10);
@@ -46,7 +54,7 @@ const createProducto = async (req, res) => {
     // Crear el producto
     const productoCreado = await prisma.productos.create({
       data: {
-        categoriaId: categoriaIdInt,
+        subcategoriaId: subcategoriaIdInt,
       },
     });
 
@@ -77,37 +85,44 @@ const createProducto = async (req, res) => {
     console.error("Error al crear el producto:", error);
     res.status(500).json({ error: "Error al crear el producto" });
   }
-}
+};
 
 const crearVariante = async (req, res) => {
-  
-  const {estantesId, ubicacion_id, productoId, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
+  const { estantesId, ubicacion_id, productoId, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
 
-    // Validar los datos de entrada variante
-    await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
-    await check("estantesId",).notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
-    await check("productoId").notEmpty().isInt().withMessage("El productoId es obligatorio y debe ser un número entero").run(req);
-    await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("codigo").notEmpty().isString().withMessage("El código de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("color").notEmpty().isString().withMessage("El color de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("descripcion").notEmpty().isString().withMessage("La descripción de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("cantidad").notEmpty().isInt().withMessage("La cantidad de la variante es obligatorio y debe ser un número entero").run(req);
-    await check("medidas").notEmpty().isString().withMessage("Las medidas de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("precio_publico").notEmpty().isFloat().withMessage("El precio público de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("precio_contratista").notEmpty().isFloat().withMessage("El precio contratista de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("costo_compra").notEmpty().isFloat().withMessage("El costo de compra de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  // Validar los datos de entrada variante
+  await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
+  await check("estantesId").notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
+  await check("productoId").notEmpty().isInt().withMessage("El productoId es obligatorio y debe ser un número entero").run(req);
+  await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("codigo").notEmpty().isString().withMessage("El código de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("color").notEmpty().isString().withMessage("El color de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("descripcion").notEmpty().isString().withMessage("La descripción de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("cantidad").notEmpty().isInt().withMessage("La cantidad de la variante es obligatorio y debe ser un número entero").run(req);
+  await check("medidas").notEmpty().isString().withMessage("Las medidas de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("precio_publico").notEmpty().isFloat().withMessage("El precio público de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("precio_contratista").notEmpty().isFloat().withMessage("El precio contratista de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("costo_compra").notEmpty().isFloat().withMessage("El costo de compra de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
 
-    const errors = validationResult(req);
+  const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-    try {
+  //Validar que el codigo no exista en la base de datos
+  var varianteExistente = await prisma.variantes.findUnique({
+    where: { codigo },
+  });
+  if (varianteExistente) {
+    return res.status(400).json({ error: "La variante ya existe" });
+  }
+
+  try {
     // Parsear valores numéricos
     const productoIdInt = parseInt(productoId, 10);
     const estantesIdInt = parseInt(estantesId, 10);
@@ -120,7 +135,7 @@ const crearVariante = async (req, res) => {
     const gananciaContratistaFloat = parseFloat(ganacia_contratista);
     const gananciasStockFloat = parseFloat(ganancias_stock);
 
-       await prisma.variantes.create({
+    await prisma.variantes.create({
       data: {
         producto_id: productoIdInt,
         ubicacion_id: ubicacionIdInt,
@@ -142,39 +157,39 @@ const crearVariante = async (req, res) => {
     });
 
     res.status(201).json("Variante creada con éxito");
-    } catch (error) {
-      res.status(500).json({ error: "Error al crear la variante" });
-    }
-}
+  } catch (error) {
+    res.status(500).json({ error: "Error al crear la variante" });
+  }
+};
 
 const updateVariante = async (req, res) => {
+  const { varianteId } = req.params;
+  const { estantesId, ubicacion_id, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
+
+  // Validar los datos de entrada variante
+  await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
+  await check("estantesId").notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
+  await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("codigo").notEmpty().isString().withMessage("El código de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("color").notEmpty().isString().withMessage("El color de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("descripcion").notEmpty().isString().withMessage("La descripción de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("cantidad").notEmpty().isInt().withMessage("La cantidad de la variante es obligatorio y debe ser un número entero").run(req);
+  await check("medidas").notEmpty().isString().withMessage("Las medidas de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  await check("precio_publico").notEmpty().isFloat().withMessage("El precio público de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("precio_contratista").notEmpty().isFloat().withMessage("El precio contratista de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("costo_compra").notEmpty().isFloat().withMessage("El costo de compra de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
+  await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
   
-  const {varianteId} = req.params;
-  const {estantesId, ubicacion_id, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
+  const errors = validationResult(req);
 
-    // Validar los datos de entrada variante
-    await check("ubicacion_id").notEmpty().isInt().withMessage("El ID de ubicación es obligatorio y debe ser un número entero").run(req);
-    await check("estantesId",).notEmpty().isInt().withMessage("El estantesId es obligatorio y debe ser un número entero").run(req);
-    await check("nombre").notEmpty().isString().withMessage("El nombre de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("codigo").notEmpty().isString().withMessage("El código de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("color").notEmpty().isString().withMessage("El color de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("descripcion").notEmpty().isString().withMessage("La descripción de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("cantidad").notEmpty().isInt().withMessage("La cantidad de la variante es obligatorio y debe ser un número entero").run(req);
-    await check("medidas").notEmpty().isString().withMessage("Las medidas de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    await check("precio_publico").notEmpty().isFloat().withMessage("El precio público de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("precio_contratista").notEmpty().isFloat().withMessage("El precio contratista de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("costo_compra").notEmpty().isFloat().withMessage("El costo de compra de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
-    await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
-    const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
+  try {
     // Parsear valores numéricos
     const varianteIdInt = parseInt(varianteId, 10);
     const estantesIdInt = parseInt(estantesId, 10);
@@ -187,7 +202,7 @@ const updateVariante = async (req, res) => {
     const gananciaContratistaFloat = parseFloat(ganacia_contratista);
     const gananciasStockFloat = parseFloat(ganancias_stock);
 
-       await prisma.variantes.update({
+    await prisma.variantes.update({
       where: { id: varianteIdInt },
       data: {
         ubicacion_id: ubicacionIdInt,
@@ -212,20 +227,32 @@ const updateVariante = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Error al actualizar la variante", details: error.message });
   }
-}
+};
 
 const getProductosByCategoria = async (req, res) => {
+
   const { categoriaId } = req.params;
+
+  // Validar que categoriaId sea un número
+  if (!categoriaId || isNaN(categoriaId)) {
+    return res.status(400).json({ error: "El ID de categoría es inválido" });
+  }
 
   try {
     const productos = await prisma.productos.findMany({
       where: {
-        categoriaId: parseInt(categoriaId),
+        subcategoria: {
+            categoriaId: parseInt(categoriaId)
+        }
       },
       include: {
-        categoria: {
-          select: {
-            nombre: true,
+        subcategoria: {
+          include: {
+            categoria: {
+                select: {
+                    nombre: true
+                }
+            }
           }
         },
         variantes:{
@@ -236,6 +263,9 @@ const getProductosByCategoria = async (req, res) => {
           }
         },
       },
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
 
     if (productos.length === 0) {
@@ -255,16 +285,20 @@ const getProductoById = async (req, res) => {
     const producto = await prisma.productos.findUnique({
       where: { id: parseInt(id) },
       include: {
-        categoria: {
-          select: {
-            nombre: true,
+        subcategoria: {
+          include: {
+            categoria: {
+                select: {
+                    nombre: true
+                }
+            }
           }
         },
         variantes: true,
       },
     });
 
-    if (producto.length === 0) {
+    if (!producto) {
       return res.status(404).json({ error: "Producto no encontrado" });
     }
 
@@ -282,7 +316,8 @@ const getProductosBySearch = async (req, res) => {
     const productos = await prisma.productos.findMany({
       where: {
         OR: [
-            { categoria: { nombre: { contains: search, mode: "insensitive" } } },
+            { subcategoria: { nombre: { contains: search, mode: "insensitive" } } },
+            { subcategoria: { categoria: { nombre: { contains: search, mode: "insensitive" } } } },
             {
                 variantes: {
                     some: {
@@ -297,10 +332,14 @@ const getProductosBySearch = async (req, res) => {
         ]
       },
       include: {
-        categoria: {
-          select: {
-            nombre: true,
-          }
+        subcategoria: {
+            include: {
+                categoria: {
+                    select: {
+                        nombre: true
+                    }
+                }
+            }
         },
         variantes: {
             select: {
@@ -327,5 +366,3 @@ export {
   getProductoById,
   getProductosBySearch,
 };
-
-

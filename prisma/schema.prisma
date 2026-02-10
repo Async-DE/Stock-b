@@ -53,15 +53,28 @@ model categorias {
   nombre    String   @unique
   createdAt DateTime @default(now())
 
-  productos  productos[]
-  auditorias auditoria[]
+  subcategorias subcategorias[]
+  auditorias    auditoria[]
+}
+
+model subcategorias {
+  id               Int      @id @default(autoincrement())
+  nombre           String
+  ganancias_ventas Float    
+  ganancias_stock  Float    
+  createdAt        DateTime @default(now())
+
+  categoriaId Int
+  categoria   categorias @relation(fields: [categoriaId], references: [id])
+
+  productos productos[]
 }
 
 model productos {
-  id          Int  @id @default(autoincrement())
-  categoriaId Int?
+  id             Int  @id @default(autoincrement())
+  subcategoriaId Int?
 
-  categoria categorias? @relation(fields: [categoriaId], references: [id])
+  subcategoria subcategorias? @relation(fields: [subcategoriaId], references: [id])
 
   createdAt DateTime @default(now())
 

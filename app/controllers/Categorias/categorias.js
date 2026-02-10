@@ -13,6 +13,13 @@ const createCategoria = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
+  var categoriaExistente = await prisma.categorias.findUnique({
+    where: { nombre },
+  });
+  if (categoriaExistente) {
+    return res.status(400).json({ error: "La categoría ya existe" });
+  }
+
   try {
     await prisma.categorias.create({
       data: {
@@ -56,4 +63,18 @@ const updateCategoria = async (req, res) => {
   }
 };
 
-export { createCategoria, updateCategoria };
+const getCategorias = async (req, res) => {
+  try {
+    const categorias = await prisma.categorias.findMany({
+      include: {
+        subcategorias: true
+      }
+    });
+    res.status(200).json(categorias);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener categorías" });
+  }
+};
+
+export { createCategoria, updateCategoria, getCategorias };
