@@ -1,3 +1,9 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Usuarios
+ *   description: Gestión de usuarios y auditoría
+ */
 import express from 'express';
 import {
   createUsuario,
