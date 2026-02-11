@@ -3,7 +3,7 @@ import {
   createProducto,
   crearVariante,
   updateVariante,
-  getProductosByCategoria,
+  getProductosBySubcategoria,
   getProductoById,
   getProductosBySearch,
 } from "../../controllers/Productos/productos.js";
@@ -18,7 +18,7 @@ router.get("/ver/:id", authMiddleware, getProductoById);
 
 router.post("/verbuscar", authMiddleware, getProductosBySearch);
 
-router.get("/ver/categoria/:categoriaId", authMiddleware, getProductosByCategoria);
+router.get("/ver/subcategoria/:subcategoriaId", authMiddleware, getProductosBySubcategoria);
 //--------------------------------------------------------
 router.post("/variantes/crear", authMiddleware, upload.single("foto"), crearVariante);
 
@@ -26,4 +26,3 @@ router.put("/variantes/actualizar/:varianteId", authMiddleware, upload.single("f
 
 
 export default router;
- 

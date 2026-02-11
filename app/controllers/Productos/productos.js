@@ -321,19 +321,19 @@ const updateVariante = async (req, res) => {
   }
 };
 
-const getProductosByCategoria = async (req, res) => {
+const getProductosBySubcategoria = async (req, res) => {
 
-  const { categoriaId } = req.params;
+  const { subcategoriaId } = req.params;
 
-  // Validar que categoriaId sea un número
-  if (!categoriaId || isNaN(categoriaId)) {
-    return res.status(400).json({ error: "El ID de categoría es inválido" });
+  // Validar que subcategoriaId sea un número
+  if (!subcategoriaId || isNaN(subcategoriaId)) {
+    return res.status(400).json({ error: "El ID de subcategoría es inválido" });
   }
 
   try {
     const productos = await prisma.productos.findMany({
       where: {
-        subcategoria: categoriaId,
+        subcategoria: subcategoriaId,
       },
       include: {
         subcategoria: {
@@ -456,7 +456,7 @@ export {
   createProducto,
   crearVariante,
   updateVariante,
-  getProductosByCategoria,
+  getProductosBySubcategoria,
   getProductoById,
   getProductosBySearch,
 };
