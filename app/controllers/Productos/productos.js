@@ -321,43 +321,45 @@ const updateVariante = async (req, res) => {
   }
 };
 
-const getProductosByCategoria = async (req, res) => {
+const getProductosBySubcategoria = async (req, res) => {
 
-  const { categoriaId } = req.params;
+  const { subcategoriaId } = req.params;
 
-  // Validar que categoriaId sea un número
-  if (!categoriaId || isNaN(categoriaId)) {
-    return res.status(400).json({ error: "El ID de categoría es inválido" });
+  // Validar que subcategoriaId sea un número
+  if (!subcategoriaId || isNaN(subcategoriaId)) {
+    return res.status(400).json({ error: "El ID de subcategoría es inválido" });
   }
 
   try {
     const productos = await prisma.productos.findMany({
       where: {
-        subcategoria: {
-            categoriaId: parseInt(categoriaId)
-        }
+        subcategoria: subcategoriaId,
       },
       include: {
         subcategoria: {
           include: {
             categoria: {
-                select: {
-                    nombre: true
-                }
-            }
-          }
+              select: {
+                nombre: true,
+              },
+            },
+          },
         },
-        variantes:{
+        variantes: {
           select: {
+            foto: true,
             nombre: true,
             color: true,
-            medidas: true
-          }
+            medidas: true,
+            precio_publico: true,
+            precio_contratista: true,
+            cantidad: true,
+          },
         },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
 
     if (productos.length === 0) {
@@ -454,7 +456,7 @@ export {
   createProducto,
   crearVariante,
   updateVariante,
-  getProductosByCategoria,
+  getProductosBySubcategoria,
   getProductoById,
   getProductosBySearch,
 };

@@ -1,41 +1,69 @@
-# Guía de primeros pasos para el proyecto stock-b
+# Stock Manager Backend - API de Gestión de Inventario
 
-Este proyecto es una API backend construida con Node.js y Express.
+API REST construida con Node.js y Express para la gestión completa de inventarios, productos, ubicaciones, estantes y ventas. Incluye autenticación JWT, auditoría automática e integración AWS S3.
 
 ## Requisitos previos
 - Node.js (v14 o superior)
 - npm (gestor de paquetes de Node.js)
+- PostgreSQL 12 o superior
+- Variables de entorno configuradas (.env)
 
 ## Instalación
-1. Clona el repositorio o descarga el código fuente.
-2. Abre una terminal en la carpeta raíz del proyecto.
-3. Instala las dependencias ejecutando:
+1. Clona el repositorio: `git clone <repo>`
+2. Abre una terminal en la carpeta raíz
+3. Instala las dependencias:
    ```bash
    npm install
    ```
+4. Configura tu base de datos en `.env` (ver ejemplo en documentación Swagger)
+5. Ejecuta las migraciones: `npx prisma migrate dev`
 
 ## Estructura del proyecto
-- `index.js`: Archivo principal de la aplicación.
-- `app/`: Carpeta para módulos, rutas y lógica de negocio.
-- `package.json`: Configuración y dependencias del proyecto.
+- `index.js`: Punto de entrada de la aplicación
+- `app/controllers/`: Lógica de negocio por módulo
+- `app/routes/`: Definición de endpoints
+- `app/middlewares/`: Autenticación y validaciones
+- `app/bucket_service/`: Integración AWS S3
+- `prisma/`: Esquema y migraciones de base de datos
+- `app/Docs/`: Documentación Swagger
 
 ## Ejecución
-Para iniciar el servidor en modo desarrollo:
+Para iniciar el servidor:
 ```bash
-node index.js
+npm start          # Servidor en puerto 3000
 ```
 
-## Personalización
-- Agrega tus rutas y lógica en la carpeta `app/`.
-- Configura variables de entorno si es necesario (por ejemplo, usando `.env`).
+Para modo desarrollo con nodemon:
+```bash
+npm run dev        # Recarga automática en cambios
+```
 
-## Sugerencias
-- Usa herramientas como nodemon para desarrollo:
-  ```bash
-  npm install --save-dev nodemon
-  nodemon index.js
-  ```
-- Documenta tus endpoints y dependencias adicionales en este archivo.
+## Documentación de API
+La documentación interactiva de los 29 endpoints disponibles está en:
+```
+http://localhost:3000/api-docs
+```
 
-## Contacto
-Para dudas o soporte, contacta al responsable del proyecto.
+Modelos disponibles:
+- **Autenticación** (3 endpoints)
+- **Usuarios** (3 endpoints)
+- **Categorías & SubCategorías** (5 endpoints)
+- **Productos & Variantes** (6 endpoints)
+- **Ubicaciones & Estantes** (6 endpoints)
+- **Ventas** (3 endpoints)
+- **Auditoría** (3 endpoints)
+
+## Características
+- ✅ Autenticación JWT con tokens persistentes
+- ✅ Sistema de auditoría automático (CREATE, UPDATE, VENTA, LOGIN)
+- ✅ 11 modelos de base de datos en PostgreSQL
+- ✅ Upload de imágenes a AWS S3
+- ✅ Validaciones con express-validator
+- ✅ Documentación Swagger OpenAPI 3.0.0
+
+## Scripts Disponibles
+```bash
+npm start          # Inicia servidor producción
+npm run dev        # Inicia con nodemon (desarrollo)
+npm test           # Ejecutar tests
+```
