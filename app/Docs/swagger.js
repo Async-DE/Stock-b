@@ -18,8 +18,12 @@ API backend para control de inventarios, productos, usuarios y ventas.
 
   servers: [
     {
-      url: "http://localhost:3730/stock",
+      url: "http://localhost:3000/stock",
       description: "Servidor local",
+    },
+    {
+      url: "https://stock-b-production.up.railway.app/stock",
+      description: "Servidor de pre-producción",
     },
   ],
 
@@ -34,7 +38,8 @@ API backend para control de inventarios, productos, usuarios y ventas.
     },
     {
       name: "Auditoría",
-      description: "Sistema de auditoría automático que registra todas las operaciones (CREATE, UPDATE, VENTA, LOGIN, LOGOUT). Permite consultar el historial completo del sistema, por usuario o por entidad específica. Soporta paginación con parámetros ?take= (max 100) y ?skip=.",
+      description:
+        "Sistema de auditoría automático que registra todas las operaciones (CREATE, UPDATE, VENTA, LOGIN, LOGOUT). Permite consultar el historial completo del sistema, por usuario o por entidad específica. Soporta paginación con parámetros ?take= (max 100) y ?skip=.",
     },
     {
       name: "Productos",
@@ -71,7 +76,8 @@ API backend para control de inventarios, productos, usuarios y ventas.
       post: {
         tags: ["Autenticación"],
         summary: "Iniciar sesión",
-        description: "Autentica un usuario con su usuario/email-teléfono y contraseña. Retorna un token JWT sin expiración.",
+        description:
+          "Autentica un usuario con su usuario/email-teléfono y contraseña. Retorna un token JWT sin expiración.",
         requestBody: {
           required: true,
           content: {
@@ -187,7 +193,8 @@ API backend para control de inventarios, productos, usuarios y ventas.
       post: {
         tags: ["Autenticación"],
         summary: "Revocar todas las sesiones",
-        description: "Revoca todas las sesiones activas del usuario actual. Útil después de cambio de contraseña.",
+        description:
+          "Revoca todas las sesiones activas del usuario actual. Útil después de cambio de contraseña.",
         security: [
           {
             bearerAuth: [],
@@ -332,7 +339,8 @@ API backend para control de inventarios, productos, usuarios y ventas.
       get: {
         tags: ["Usuarios"],
         summary: "Obtener usuarios",
-        description: "Obtiene la lista de usuarios, opcionalmente filtrados por estado",
+        description:
+          "Obtiene la lista de usuarios, opcionalmente filtrados por estado",
         parameters: [
           {
             name: "estado",
@@ -371,7 +379,8 @@ API backend para control de inventarios, productos, usuarios y ventas.
       get: {
         tags: ["Auditoría"],
         summary: "Auditoría general del sistema",
-        description: "Obtiene el historial completo de todas las operaciones realizadas en el sistema (CREATE, UPDATE, VENTA, LOGIN, LOGOUT). Incluye información del usuario que realizó la acción y las entidades afectadas. Por defecto retorna las últimas 20 operaciones, pero soporta paginación con parámetros ?take= y ?skip=",
+        description:
+          "Obtiene el historial completo de todas las operaciones realizadas en el sistema (CREATE, UPDATE, VENTA, LOGIN, LOGOUT). Incluye información del usuario que realizó la acción y las entidades afectadas. Por defecto retorna las últimas 20 operaciones, pero soporta paginación con parámetros ?take= y ?skip=",
         security: [
           {
             bearerAuth: [],
@@ -382,24 +391,24 @@ API backend para control de inventarios, productos, usuarios y ventas.
             name: "take",
             in: "query",
             required: false,
-            schema: { 
+            schema: {
               type: "integer",
               minimum: 1,
               maximum: 100,
-              default: 20
+              default: 20,
             },
-            description: "Número de registros a retornar (máximo 100)"
+            description: "Número de registros a retornar (máximo 100)",
           },
           {
             name: "skip",
             in: "query",
             required: false,
-            schema: { 
+            schema: {
               type: "integer",
               minimum: 0,
-              default: 0
+              default: 0,
             },
-            description: "Número de registros a omitir (para paginación)"
+            description: "Número de registros a omitir (para paginación)",
           },
         ],
         responses: {
@@ -427,7 +436,8 @@ API backend para control de inventarios, productos, usuarios y ventas.
       get: {
         tags: ["Auditoría"],
         summary: "Auditoría por usuario específico",
-        description: "Obtiene el historial de todas las operaciones realizadas por un usuario en particular. Útil para auditorías de seguridad o revisión de acciones de empleados. Soporta paginación.",
+        description:
+          "Obtiene el historial de todas las operaciones realizadas por un usuario en particular. Útil para auditorías de seguridad o revisión de acciones de empleados. Soporta paginación.",
         security: [
           {
             bearerAuth: [],
@@ -445,24 +455,24 @@ API backend para control de inventarios, productos, usuarios y ventas.
             name: "take",
             in: "query",
             required: false,
-            schema: { 
+            schema: {
               type: "integer",
               minimum: 1,
               maximum: 100,
-              default: 20
+              default: 20,
             },
-            description: "Número de registros a retornar (máximo 100)"
+            description: "Número de registros a retornar (máximo 100)",
           },
           {
             name: "skip",
             in: "query",
             required: false,
-            schema: { 
+            schema: {
               type: "integer",
               minimum: 0,
-              default: 0
+              default: 0,
             },
-            description: "Número de registros a omitir (para paginación)"
+            description: "Número de registros a omitir (para paginación)",
           },
         ],
         responses: {
@@ -537,12 +547,20 @@ Soporta paginación con ?take= y ?skip=`,
             name: "entidad",
             in: "path",
             required: true,
-            schema: { 
+            schema: {
               type: "string",
-              enum: ["categorias", "subcategorias", "productos", "variantes", "ventas", "estantes", "ubicaciones"]
+              enum: [
+                "categorias",
+                "subcategorias",
+                "productos",
+                "variantes",
+                "ventas",
+                "estantes",
+                "ubicaciones",
+              ],
             },
             description: "Tipo de entidad a consultar",
-            example: "productos"
+            example: "productos",
           },
           {
             name: "id",
@@ -550,30 +568,30 @@ Soporta paginación con ?take= y ?skip=`,
             required: true,
             schema: { type: "integer" },
             description: "ID de la entidad específica",
-            example: 1
+            example: 1,
           },
           {
             name: "take",
             in: "query",
             required: false,
-            schema: { 
+            schema: {
               type: "integer",
               minimum: 1,
               maximum: 100,
-              default: 20
+              default: 20,
             },
-            description: "Número de registros a retornar (máximo 100)"
+            description: "Número de registros a retornar (máximo 100)",
           },
           {
             name: "skip",
             in: "query",
             required: false,
-            schema: { 
+            schema: {
               type: "integer",
               minimum: 0,
-              default: 0
+              default: 0,
             },
-            description: "Número de registros a omitir (para paginación)"
+            description: "Número de registros a omitir (para paginación)",
           },
         ],
         responses: {
@@ -598,12 +616,12 @@ Soporta paginación con ?take= y ?skip=`,
                         usuario: {
                           id: 1,
                           nombre: "Admin Usuario",
-                          usuario: "admin"
+                          usuario: "admin",
                         },
                         categoria: {
                           id: 1,
-                          nombre: "Electrodomésticos"
-                        }
+                          nombre: "Electrodomésticos",
+                        },
                       },
                       {
                         id: 28,
@@ -612,14 +630,14 @@ Soporta paginación con ?take= y ?skip=`,
                         usuario: {
                           id: 2,
                           nombre: "Juan Pérez",
-                          usuario: "juanp"
+                          usuario: "juanp",
                         },
                         categoria: {
                           id: 1,
-                          nombre: "Electrodomésticos Premium"
-                        }
-                      }
-                    ]
+                          nombre: "Electrodomésticos Premium",
+                        },
+                      },
+                    ],
                   },
                   producto: {
                     summary: "Ejemplo: Auditoría de producto",
@@ -631,14 +649,14 @@ Soporta paginación con ?take= y ?skip=`,
                         usuario: {
                           id: 1,
                           nombre: "Admin Usuario",
-                          usuario: "admin"
+                          usuario: "admin",
                         },
                         producto: {
                           id: 5,
-                          nombre: "Refrigerador Samsung"
-                        }
-                      }
-                    ]
+                          nombre: "Refrigerador Samsung",
+                        },
+                      },
+                    ],
                   },
                   venta: {
                     summary: "Ejemplo: Auditoría de venta",
@@ -650,17 +668,17 @@ Soporta paginación con ?take= y ?skip=`,
                         usuario: {
                           id: 3,
                           nombre: "María López",
-                          usuario: "marialop"
+                          usuario: "marialop",
                         },
                         venta: {
                           id: 12,
-                          total_venta: 15500.00,
-                          nombre_cliente: "Carlos González"
-                        }
-                      }
-                    ]
-                  }
-                }
+                          total_venta: 15500.0,
+                          nombre_cliente: "Carlos González",
+                        },
+                      },
+                    ],
+                  },
+                },
               },
             },
           },
@@ -673,7 +691,8 @@ Soporta paginación con ?take= y ?skip=`,
                   properties: {
                     error: {
                       type: "string",
-                      example: "Entidad no válida. Usa: categorias, subcategorias, productos, variantes, ventas, estantes, ubicaciones",
+                      example:
+                        "Entidad no válida. Usa: categorias, subcategorias, productos, variantes, ventas, estantes, ubicaciones",
                     },
                   },
                 },
@@ -698,7 +717,8 @@ Soporta paginación con ?take= y ?skip=`,
       post: {
         tags: ["Productos"],
         summary: "Crear producto con variante base",
-        description: "Crea un producto y su variante inicial en una sola operación",
+        description:
+          "Crea un producto y su variante inicial en una sola operación",
         requestBody: {
           required: true,
           content: {
@@ -716,13 +736,13 @@ Soporta paginación con ?take= y ?skip=`,
                 descripcion: "Tornillo Phillips 1/4 x 2 pulgadas",
                 cantidad: 500,
                 medidas: "1/4 x 2 in",
-                precio_publico: 1.50,
-                precio_contratista: 1.20,
-                costo_compra: 0.80,
-                ganacia_publico: 0.70,
-                ganacia_contratista: 0.40,
-                ganancias_stock: 350.00,
-                foto: "https://ejemplo.com/tornillo.jpg"
+                precio_publico: 1.5,
+                precio_contratista: 1.2,
+                costo_compra: 0.8,
+                ganacia_publico: 0.7,
+                ganacia_contratista: 0.4,
+                ganancias_stock: 350.0,
+                foto: "https://ejemplo.com/tornillo.jpg",
               },
             },
           },
@@ -734,7 +754,7 @@ Soporta paginación con ?take= y ?skip=`,
               "application/json": {
                 schema: {
                   type: "string",
-                  example: "Producto y variante básica creados con éxito"
+                  example: "Producto y variante básica creados con éxito",
                 },
               },
             },
@@ -795,7 +815,8 @@ Soporta paginación con ?take= y ?skip=`,
       post: {
         tags: ["Productos"],
         summary: "Buscar productos",
-        description: "Busca productos por categoría, nombre de variante, color o código",
+        description:
+          "Busca productos por categoría, nombre de variante, color o código",
         requestBody: {
           required: true,
           content: {
@@ -807,7 +828,7 @@ Soporta paginación con ?take= y ?skip=`,
                   search: {
                     type: "string",
                     description: "Término de búsqueda",
-                    example: "tornillo"
+                    example: "tornillo",
                   },
                 },
               },
@@ -835,23 +856,24 @@ Soporta paginación con ?take= y ?skip=`,
       },
     },
 
-    "/productos/ver/categoria/{categoriaId}": {
+    "/productos/ver/subcategoria/{subcategoriaId}": {
       get: {
         tags: ["Productos"],
-        summary: "Productos por categoría",
-        description: "Obtiene todos los productos de una categoría específica",
+        summary: "Productos por subcategoría",
+        description:
+          "Obtiene todos los productos de una subcategoría específica",
         parameters: [
           {
-            name: "categoriaId",
+            name: "subcategoriaId",
             in: "path",
             required: true,
             schema: { type: "integer" },
-            description: "ID de la categoría",
+            description: "ID de la subcategoría",
           },
         ],
         responses: {
           200: {
-            description: "Lista de productos por categoría",
+            description: "Lista de productos por subcategoría",
             content: {
               "application/json": {
                 schema: {
@@ -864,7 +886,7 @@ Soporta paginación con ?take= y ?skip=`,
             },
           },
           404: {
-            description: "No se encontraron productos para esta categoría",
+            description: "No se encontraron productos para esta subcategoría",
           },
           500: {
             description: "Error interno del servidor",
@@ -899,7 +921,7 @@ Soporta paginación con ?take= y ?skip=`,
               "application/json": {
                 schema: {
                   type: "string",
-                  example: "Variante creada con éxito"
+                  example: "Variante creada con éxito",
                 },
               },
             },
@@ -952,7 +974,7 @@ Soporta paginación con ?take= y ?skip=`,
               "application/json": {
                 schema: {
                   type: "string",
-                  example: "Variante actualizada con éxito"
+                  example: "Variante actualizada con éxito",
                 },
               },
             },
@@ -1169,13 +1191,13 @@ Soporta paginación con ?take= y ?skip=`,
                     type: "string",
                     format: "date-time",
                     description: "Fecha inicial (ISO 8601)",
-                    example: "2024-01-01T00:00:00.000Z"
+                    example: "2024-01-01T00:00:00.000Z",
                   },
                   endDate: {
                     type: "string",
                     format: "date-time",
                     description: "Fecha final (ISO 8601)",
-                    example: "2024-12-31T23:59:59.999Z"
+                    example: "2024-12-31T23:59:59.999Z",
                   },
                 },
               },
@@ -1219,7 +1241,7 @@ Soporta paginación con ?take= y ?skip=`,
                   search: {
                     type: "string",
                     description: "Término de búsqueda",
-                    example: "Juan Pérez"
+                    example: "Juan Pérez",
                   },
                 },
               },
@@ -1310,7 +1332,8 @@ Soporta paginación con ?take= y ?skip=`,
       get: {
         tags: ["Categorías"],
         summary: "Obtener categorías",
-        description: "Obtiene la lista de todas las categorías con sus subcategorías",
+        description:
+          "Obtiene la lista de todas las categorías con sus subcategorías",
         security: [
           {
             bearerAuth: [],
@@ -1537,7 +1560,8 @@ Soporta paginación con ?take= y ?skip=`,
       post: {
         tags: ["Estantes"],
         summary: "Crear estante",
-        description: "Crea un nuevo estante asociado opcionalmente a una ubicación",
+        description:
+          "Crea un nuevo estante asociado opcionalmente a una ubicación",
         requestBody: {
           required: true,
           content: {
@@ -1660,13 +1684,13 @@ Soporta paginación con ?take= y ?skip=`,
           usuario_email: {
             type: "string",
             description: "Nombre de usuario, email o teléfono",
-            example: "usuario123"
+            example: "usuario123",
           },
           password: {
             type: "string",
             format: "password",
             description: "Contraseña del usuario",
-            example: "micontraseña"
+            example: "micontraseña",
           },
         },
       },
@@ -1700,23 +1724,23 @@ Soporta paginación con ?take= y ?skip=`,
           nombre: {
             type: "string",
             description: "Nombre completo del usuario",
-            example: "Juan Pérez"
+            example: "Juan Pérez",
           },
           usuario: {
             type: "string",
             description: "Nombre de usuario único",
-            example: "juanp"
+            example: "juanp",
           },
           email_phone: {
             type: "string",
             description: "Email o teléfono único",
-            example: "juan@email.com"
+            example: "juan@email.com",
           },
           password: {
             type: "string",
             format: "password",
             description: "Contraseña (se hashea con bcrypt)",
-            example: "123456"
+            example: "123456",
           },
         },
       },
@@ -1728,7 +1752,7 @@ Soporta paginación con ?take= y ?skip=`,
           estado: {
             type: "boolean",
             description: "true = activo, false = inactivo",
-            example: true
+            example: true,
           },
         },
       },
@@ -1738,31 +1762,31 @@ Soporta paginación con ?take= y ?skip=`,
         properties: {
           id: {
             type: "integer",
-            example: 1
+            example: 1,
           },
           nombre: {
             type: "string",
-            example: "Juan Pérez"
+            example: "Juan Pérez",
           },
           usuario: {
             type: "string",
-            example: "juanp"
+            example: "juanp",
           },
           email_phone: {
             type: "string",
-            example: "juan@email.com"
+            example: "juan@email.com",
           },
           estado: {
             type: "boolean",
-            example: true
+            example: true,
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
           updatedAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
         },
       },
@@ -1773,166 +1797,181 @@ Soporta paginación con ?take= y ?skip=`,
 
       Auditoria: {
         type: "object",
-        description: "Registro de auditoría del sistema. Cada operación genera un registro que incluye el usuario que la realizó y la entidad afectada. Los campos de entidades (categoria, subcategoria, etc.) solo aparecen cuando son relevantes para esa operación.",
+        description:
+          "Registro de auditoría del sistema. Cada operación genera un registro que incluye el usuario que la realizó y la entidad afectada. Los campos de entidades (categoria, subcategoria, etc.) solo aparecen cuando son relevantes para esa operación.",
         properties: {
           id: {
             type: "integer",
-            description: "ID único del registro de auditoría"
+            description: "ID único del registro de auditoría",
           },
           usuario_id: {
             type: "integer",
-            description: "ID del usuario que realizó la acción"
+            description: "ID del usuario que realizó la acción",
           },
           accion: {
             type: "string",
-            enum: ["CREATE", "UPDATE", "DELETE", "LOGIN", "VENTA", "AJUSTE_STOCK"],
-            description: "Tipo de acción realizada"
+            enum: [
+              "CREATE",
+              "UPDATE",
+              "DELETE",
+              "LOGIN",
+              "VENTA",
+              "AJUSTE_STOCK",
+            ],
+            description: "Tipo de acción realizada",
           },
           createdAt: {
             type: "string",
             format: "date-time",
-            description: "Fecha y hora de la operación"
+            description: "Fecha y hora de la operación",
           },
           usuario: {
             type: "object",
             description: "Información del usuario que realizó la operación",
             properties: {
               id: {
-                type: "integer"
+                type: "integer",
               },
               nombre: {
-                type: "string"
+                type: "string",
               },
               usuario: {
-                type: "string"
+                type: "string",
               },
               email_phone: {
-                type: "string"
+                type: "string",
               },
             },
           },
           categoria: {
             type: "object",
             nullable: true,
-            description: "Datos de la categoría afectada (solo presente si la operación involucró una categoría)",
+            description:
+              "Datos de la categoría afectada (solo presente si la operación involucró una categoría)",
             properties: {
               id: {
-                type: "integer"
+                type: "integer",
               },
               nombre: {
-                type: "string"
+                type: "string",
               },
             },
           },
           subcategoria: {
             type: "object",
             nullable: true,
-            description: "Datos de la subcategoría afectada (solo presente si la operación involucró una subcategoría)",
+            description:
+              "Datos de la subcategoría afectada (solo presente si la operación involucró una subcategoría)",
             properties: {
               id: {
-                type: "integer"
+                type: "integer",
               },
               nombre: {
-                type: "string"
+                type: "string",
               },
               categoriaId: {
-                type: "integer"
+                type: "integer",
               },
             },
           },
           producto: {
             type: "object",
             nullable: true,
-            description: "Datos del producto afectado (solo presente si la operación involucró un producto)",
+            description:
+              "Datos del producto afectado (solo presente si la operación involucró un producto)",
             properties: {
               id: {
-                type: "integer"
+                type: "integer",
               },
               nombre: {
-                type: "string"
+                type: "string",
               },
               subcategoriaId: {
-                type: "integer"
+                type: "integer",
               },
             },
           },
           variante: {
             type: "object",
             nullable: true,
-            description: "Datos de la variante afectada (solo presente si la operación involucró una variante)",
+            description:
+              "Datos de la variante afectada (solo presente si la operación involucró una variante)",
             properties: {
               id: {
-                type: "integer"
+                type: "integer",
               },
               nombre: {
-                type: "string"
+                type: "string",
               },
               codigo: {
-                type: "string"
+                type: "string",
               },
               color: {
-                type: "string"
+                type: "string",
               },
               cantidad: {
-                type: "integer"
+                type: "integer",
               },
             },
           },
           venta: {
             type: "object",
             nullable: true,
-            description: "Datos de la venta registrada (solo presente si la operación fue una venta)",
+            description:
+              "Datos de la venta registrada (solo presente si la operación fue una venta)",
             properties: {
               id: {
-                type: "integer"
+                type: "integer",
               },
               total_venta: {
                 type: "number",
-                format: "float"
+                format: "float",
               },
               nombre_cliente: {
-                type: "string"
+                type: "string",
               },
               contacto_cliente: {
-                type: "string"
+                type: "string",
               },
             },
           },
           estante: {
             type: "object",
             nullable: true,
-            description: "Datos del estante afectado (solo presente si la operación involucró un estante)",
+            description:
+              "Datos del estante afectado (solo presente si la operación involucró un estante)",
             properties: {
               id: {
-                type: "integer"
+                type: "integer",
               },
               Seccion: {
-                type: "string"
+                type: "string",
               },
               nivel: {
-                type: "integer"
+                type: "integer",
               },
               pasillo: {
-                type: "integer"
+                type: "integer",
               },
             },
           },
           ubicacion: {
             type: "object",
             nullable: true,
-            description: "Datos de la ubicación afectada (solo presente si la operación involucró una ubicación)",
+            description:
+              "Datos de la ubicación afectada (solo presente si la operación involucró una ubicación)",
             properties: {
               id: {
-                type: "integer"
+                type: "integer",
               },
               nombre: {
-                type: "string"
+                type: "string",
               },
               calle: {
-                type: "string"
+                type: "string",
               },
               colonia: {
-                type: "string"
+                type: "string",
               },
             },
           },
@@ -1949,11 +1988,11 @@ Soporta paginación con ?take= y ?skip=`,
               properties: {
                 msg: {
                   type: "string",
-                  description: "Mensaje de error"
+                  description: "Mensaje de error",
                 },
                 param: {
                   type: "string",
-                  description: "Campo que causó el error"
+                  description: "Campo que causó el error",
                 },
               },
             },
@@ -1967,7 +2006,8 @@ Soporta paginación con ?take= y ?skip=`,
 
       CreateProductoConVariante: {
         type: "object",
-        description: "Crea un producto y su primera variante en una sola operación",
+        description:
+          "Crea un producto y su primera variante en una sola operación",
         required: [
           "subcategoriaId",
           "estantesId",
@@ -1989,78 +2029,78 @@ Soporta paginación con ?take= y ?skip=`,
         properties: {
           subcategoriaId: {
             type: "integer",
-            description: "ID de la subcategoría del producto (requerido)"
+            description: "ID de la subcategoría del producto (requerido)",
           },
           estantesId: {
             type: "integer",
-            description: "ID del estante donde se almacena"
+            description: "ID del estante donde se almacena",
           },
           ubicacion_id: {
             type: "integer",
-            description: "ID de la ubicación física"
+            description: "ID de la ubicación física",
           },
           nombre: {
             type: "string",
-            description: "Nombre de la variante"
+            description: "Nombre de la variante",
           },
           codigo: {
             type: "string",
-            description: "Código único de la variante"
+            description: "Código único de la variante",
           },
           color: {
             type: "string",
-            description: "Color de la variante"
+            description: "Color de la variante",
           },
           descripcion: {
             type: "string",
-            description: "Descripción detallada"
+            description: "Descripción detallada",
           },
           cantidad: {
             type: "integer",
             minimum: 0,
-            description: "Cantidad en stock"
+            description: "Cantidad en stock",
           },
           medidas: {
             type: "string",
-            description: "Dimensiones o medidas"
+            description: "Dimensiones o medidas",
           },
           precio_publico: {
             type: "number",
             format: "float",
             minimum: 0,
-            description: "Precio para público general"
+            description: "Precio para público general",
           },
           precio_contratista: {
             type: "number",
             format: "float",
             minimum: 0,
-            description: "Precio para contratistas"
+            description: "Precio para contratistas",
           },
           costo_compra: {
             type: "number",
             format: "float",
             minimum: 0,
-            description: "Costo de adquisición"
+            description: "Costo de adquisición",
           },
           ganacia_publico: {
             type: "number",
             format: "float",
-            description: "Ganancia acumulada en ventas públicas"
+            description: "Ganancia acumulada en ventas públicas",
           },
           ganacia_contratista: {
             type: "number",
             format: "float",
-            description: "Ganancia acumulada en ventas a contratistas"
+            description: "Ganancia acumulada en ventas a contratistas",
           },
           ganancias_stock: {
             type: "number",
             format: "float",
-            description: "Ganancia total potencial del stock"
+            description: "Ganancia total potencial del stock",
           },
           foto: {
             type: "string",
             format: "uri",
-            description: "URL de la imagen del producto"
+            description: "URL de la imagen del producto",
           },
         },
       },
@@ -2089,72 +2129,73 @@ Soporta paginación con ?take= y ?skip=`,
         properties: {
           productoId: {
             type: "integer",
-            description: "ID del producto padre"
+            description: "ID del producto padre",
           },
           estantesId: {
             type: "integer",
-            description: "ID del estante"
+            description: "ID del estante",
           },
           ubicacion_id: {
             type: "integer",
-            description: "ID de la ubicación"
+            description: "ID de la ubicación",
           },
           nombre: {
-            type: "string"
+            type: "string",
           },
           codigo: {
-            type: "string"
+            type: "string",
           },
           color: {
-            type: "string"
+            type: "string",
           },
           descripcion: {
-            type: "string"
+            type: "string",
           },
           cantidad: {
             type: "integer",
-            minimum: 0
+            minimum: 0,
           },
           medidas: {
-            type: "string"
+            type: "string",
           },
           precio_publico: {
             type: "number",
             format: "float",
-            minimum: 0
+            minimum: 0,
           },
           precio_contratista: {
             type: "number",
             format: "float",
-            minimum: 0
+            minimum: 0,
           },
           costo_compra: {
             type: "number",
             format: "float",
-            minimum: 0
+            minimum: 0,
           },
           ganacia_publico: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           ganacia_contratista: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           ganancias_stock: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           foto: {
             type: "string",
-            format: "uri"
+            format: "uri",
           },
         },
       },
 
       UpdateVariante: {
         type: "object",
-        description: "Actualiza una variante existente (todos los campos son requeridos según controlador)",
+        description:
+          "Actualiza una variante existente (todos los campos son requeridos según controlador)",
         required: [
           "estantesId",
           "ubicacion_id",
@@ -2174,60 +2215,60 @@ Soporta paginación con ?take= y ?skip=`,
         ],
         properties: {
           estantesId: {
-            type: "integer"
+            type: "integer",
           },
           ubicacion_id: {
-            type: "integer"
+            type: "integer",
           },
           nombre: {
-            type: "string"
+            type: "string",
           },
           codigo: {
-            type: "string"
+            type: "string",
           },
           color: {
-            type: "string"
+            type: "string",
           },
           descripcion: {
-            type: "string"
+            type: "string",
           },
           cantidad: {
             type: "integer",
-            minimum: 0
+            minimum: 0,
           },
           medidas: {
-            type: "string"
+            type: "string",
           },
           precio_publico: {
             type: "number",
             format: "float",
-            minimum: 0
+            minimum: 0,
           },
           precio_contratista: {
             type: "number",
             format: "float",
-            minimum: 0
+            minimum: 0,
           },
           costo_compra: {
             type: "number",
             format: "float",
-            minimum: 0
+            minimum: 0,
           },
           ganacia_publico: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           ganacia_contratista: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           ganancias_stock: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           foto: {
             type: "string",
-            format: "uri"
+            format: "uri",
           },
         },
       },
@@ -2237,22 +2278,22 @@ Soporta paginación con ?take= y ?skip=`,
         description: "Vista resumida del producto con sus variantes",
         properties: {
           id: {
-            type: "integer"
+            type: "integer",
           },
           categoriaId: {
             type: "integer",
-            nullable: true
+            nullable: true,
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
           categoria: {
             type: "object",
             nullable: true,
             properties: {
               nombre: {
-                type: "string"
+                type: "string",
               },
             },
           },
@@ -2262,13 +2303,13 @@ Soporta paginación con ?take= y ?skip=`,
               type: "object",
               properties: {
                 nombre: {
-                  type: "string"
+                  type: "string",
                 },
                 color: {
-                  type: "string"
+                  type: "string",
                 },
                 medidas: {
-                  type: "string"
+                  type: "string",
                 },
               },
             },
@@ -2281,22 +2322,22 @@ Soporta paginación con ?take= y ?skip=`,
         description: "Vista completa del producto con todas sus variantes",
         properties: {
           id: {
-            type: "integer"
+            type: "integer",
           },
           categoriaId: {
             type: "integer",
-            nullable: true
+            nullable: true,
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
           categoria: {
             type: "object",
             nullable: true,
             properties: {
               nombre: {
-                type: "string"
+                type: "string",
               },
             },
           },
@@ -2314,73 +2355,73 @@ Soporta paginación con ?take= y ?skip=`,
         description: "Variante completa con todas sus propiedades",
         properties: {
           id: {
-            type: "integer"
+            type: "integer",
           },
           producto_id: {
             type: "integer",
-            description: "ID del producto padre"
+            description: "ID del producto padre",
           },
           ubicacion_id: {
             type: "integer",
-            description: "ID de la ubicación física"
+            description: "ID de la ubicación física",
           },
           estante_id: {
             type: "integer",
-            description: "ID del estante"
+            description: "ID del estante",
           },
           nombre: {
-            type: "string"
+            type: "string",
           },
           codigo: {
-            type: "string"
+            type: "string",
           },
           color: {
-            type: "string"
+            type: "string",
           },
           descripcion: {
-            type: "string"
+            type: "string",
           },
           cantidad: {
-            type: "integer"
+            type: "integer",
           },
           medidas: {
-            type: "string"
+            type: "string",
           },
           precio_publico: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           precio_contratista: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           costo_compra: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           ganacia_publico: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           ganacia_contratista: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           ganancias_stock: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           foto: {
             type: "string",
-            format: "uri"
+            format: "uri",
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
           updatedAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
         },
       },
@@ -2396,7 +2437,7 @@ Soporta paginación con ?take= y ?skip=`,
           nombre: {
             type: "string",
             description: "Nombre único de la categoría",
-            example: "Electrónica"
+            example: "Electrónica",
           },
         },
       },
@@ -2406,22 +2447,22 @@ Soporta paginación con ?take= y ?skip=`,
         properties: {
           id: {
             type: "integer",
-            example: 1
+            example: 1,
           },
           nombre: {
             type: "string",
-            example: "Electrónica"
+            example: "Electrónica",
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
           subcategorias: {
             type: "array",
             items: {
-              $ref: "#/components/schemas/SubCategoria"
+              $ref: "#/components/schemas/SubCategoria",
             },
-            description: "Lista de subcategorías asociadas"
+            description: "Lista de subcategorías asociadas",
           },
         },
       },
@@ -2437,12 +2478,12 @@ Soporta paginación con ?take= y ?skip=`,
           nombre: {
             type: "string",
             description: "Nombre de la subcategoría",
-            example: "Celulares"
+            example: "Celulares",
           },
           categoriaId: {
             type: "integer",
             description: "ID de la categoría padre",
-            example: 1
+            example: 1,
           },
         },
       },
@@ -2452,31 +2493,31 @@ Soporta paginación con ?take= y ?skip=`,
         properties: {
           id: {
             type: "integer",
-            example: 1
+            example: 1,
           },
           nombre: {
             type: "string",
-            example: "Celulares"
+            example: "Celulares",
           },
           categoriaId: {
             type: "integer",
-            example: 1
+            example: 1,
           },
           ganancias_ventas: {
             type: "number",
             format: "float",
             description: "Ganancia acumulada en ventas",
-            example: 0.0
+            example: 0.0,
           },
           ganancias_stock: {
             type: "number",
             format: "float",
             description: "Ganancia potencial del stock",
-            example: 0.0
+            example: 0.0,
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
         },
       },
@@ -2492,23 +2533,23 @@ Soporta paginación con ?take= y ?skip=`,
           nombre: {
             type: "string",
             description: "Nombre identificador de la ubicación",
-            example: "Bodega Central"
+            example: "Bodega Central",
           },
           calle: {
             type: "string",
-            example: "Av. Principal 123"
+            example: "Av. Principal 123",
           },
           cp: {
             type: "string",
-            example: "12345"
+            example: "12345",
           },
           colonia: {
             type: "string",
-            example: "Centro"
+            example: "Centro",
           },
           celular: {
             type: "string",
-            example: "+52 555 123 4567"
+            example: "+52 555 123 4567",
           },
         },
       },
@@ -2517,26 +2558,26 @@ Soporta paginación con ?take= y ?skip=`,
         type: "object",
         properties: {
           id: {
-            type: "integer"
+            type: "integer",
           },
           nombre: {
-            type: "string"
+            type: "string",
           },
           calle: {
-            type: "string"
+            type: "string",
           },
           cp: {
-            type: "string"
+            type: "string",
           },
           colonia: {
-            type: "string"
+            type: "string",
           },
           celular: {
-            type: "string"
+            type: "string",
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
         },
       },
@@ -2557,40 +2598,40 @@ Soporta paginación con ?take= y ?skip=`,
         properties: {
           varianteId: {
             type: "integer",
-            description: "ID de la variante vendida"
+            description: "ID de la variante vendida",
           },
           cantidad: {
             type: "integer",
             minimum: 1,
-            description: "Cantidad de unidades vendidas"
+            description: "Cantidad de unidades vendidas",
           },
           total_venta: {
             type: "number",
             format: "float",
             minimum: 0,
-            description: "Monto total de la venta"
+            description: "Monto total de la venta",
           },
           nombre_cliente: {
             type: "string",
             description: "Nombre del cliente",
-            example: "Pedro Martínez"
+            example: "Pedro Martínez",
           },
           contacto_cliente: {
             type: "string",
             description: "Teléfono o email del cliente",
-            example: "+52 555 987 6543"
+            example: "+52 555 987 6543",
           },
           costos_extras: {
             type: "number",
             format: "float",
             minimum: 0,
             description: "Costos adicionales (envío, instalación, etc.)",
-            default: 0
+            default: 0,
           },
           motivo_costo_extra: {
             type: "string",
             description: "Descripción de los costos extras",
-            example: "Envío a domicilio"
+            example: "Envío a domicilio",
           },
         },
       },
@@ -2600,50 +2641,50 @@ Soporta paginación con ?take= y ?skip=`,
         description: "Registro completo de venta con snapshot de precios",
         properties: {
           id: {
-            type: "integer"
+            type: "integer",
           },
           variante_id: {
-            type: "integer"
+            type: "integer",
           },
           cantidad: {
-            type: "integer"
+            type: "integer",
           },
           total_venta: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           fecha_venta: {
             type: "string",
             format: "date-time",
-            description: "Timestamp de la venta"
+            description: "Timestamp de la venta",
           },
           nombre_cliente: {
-            type: "string"
+            type: "string",
           },
           contacto_cliente: {
-            type: "string"
+            type: "string",
           },
           costos_extras: {
             type: "number",
-            format: "float"
+            format: "float",
           },
           motivo_costo_extra: {
-            type: "string"
+            type: "string",
           },
           precio_publico: {
             type: "number",
             format: "float",
-            description: "Precio público al momento de la venta"
+            description: "Precio público al momento de la venta",
           },
           precio_contratista: {
             type: "number",
             format: "float",
-            description: "Precio contratista al momento de la venta"
+            description: "Precio contratista al momento de la venta",
           },
           costo_compra: {
             type: "number",
             format: "float",
-            description: "Costo de compra al momento de la venta"
+            description: "Costo de compra al momento de la venta",
           },
         },
       },
@@ -2687,25 +2728,25 @@ Soporta paginación con ?take= y ?skip=`,
         description: "Estante con su ubicación asociada",
         properties: {
           id: {
-            type: "integer"
+            type: "integer",
           },
           pasillo: {
-            type: "integer"
+            type: "integer",
           },
           Seccion: {
             type: "string",
-            description: "Campo con PascalCase según Prisma"
+            description: "Campo con PascalCase según Prisma",
           },
           nivel: {
-            type: "integer"
+            type: "integer",
           },
           ubicacionId: {
             type: "integer",
-            nullable: true
+            nullable: true,
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
           },
           ubicacion: {
             nullable: true,
@@ -2723,9 +2764,10 @@ Soporta paginación con ?take= y ?skip=`,
         type: "http",
         scheme: "bearer",
         bearerFormat: "JWT",
-        description: "JWT token sin expiración. Incluir en header: Authorization: Bearer {token}"
-      }
-    }
+        description:
+          "JWT token sin expiración. Incluir en header: Authorization: Bearer {token}",
+      },
+    },
   },
 };
 

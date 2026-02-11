@@ -22,11 +22,11 @@ La documentación está definida usando **OpenAPI 3.0.0** y es consumida mediant
 
 ## 🧱 Alcance de la Documentación
 
-La documentación incluye **todos los módulos del backend** (31 endpoints totales):
+La documentación incluye **todos los módulos del backend** (29 endpoints totales):
 
 - **Autenticación** (3 endpoints)
-- **Usuarios** (5 endpoints)
-- **Auditoría** (2 endpoints de consulta)
+- **Usuarios** (3 endpoints)
+- **Auditoría** (3 endpoints de consulta)
 - **Categorías** (3 endpoints) ✅
 - **Sub-Categorías** (2 endpoints) ✅
 - **Productos** (6 endpoints)
@@ -35,7 +35,7 @@ La documentación incluye **todos los módulos del backend** (31 endpoints total
 - **Estantes** (3 endpoints)
 - **Ventas** (3 endpoints)
 
-✅ **Status:** Documentación 100% completada - Todos los módulos incluidos
+✅ **Status:** Documentación completa para los 29 endpoints implementados
 
 ---
 
@@ -50,7 +50,7 @@ La documentación incluye **todos los módulos del backend** (31 endpoints total
 - `POST /auth/login` → Obtiene JWT token
 
 ### Endpoints Protegidos
-- Todos los demás (30/31 endpoints) requieren:
+- Los 28 endpoints restantes requieren:
   - Header: `Authorization: Bearer {token}`
   - JWT válido
   - Usuario activo
@@ -63,8 +63,9 @@ La documentación incluye **todos los módulos del backend** (31 endpoints total
 **Cobertura:** 16 puntos de auditoría en todas las operaciones de datos
 
 ### Endpoints de Consulta
-- `GET /stock/usuarios/auditoria/general` → Últimos 20 movimientos
-- `GET /stock/usuarios/auditoria/usuario/{id}` → Movimientos por usuario
+- `GET /stock/auditoria/general` → Últimos movimientos
+- `GET /stock/auditoria/usuario/{id}` → Movimientos por usuario
+- `GET /stock/auditoria/entidad/{entidad}/{id}` → Movimientos por entidad
 
 ### Acciones Registradas
 - **CREATE** → Creación de registros (7 módulos)
@@ -105,7 +106,7 @@ swagger.js
 
 Este archivo contiene:
 - Definición OpenAPI 3.0.0 completa
-- 31 endpoints documentados
+- 29 endpoints documentados
 - Esquemas reutilizables (`components/schemas`)
 - Ejemplos de requests y responses
 - Tipos de datos alineados a Prisma
@@ -126,7 +127,7 @@ npm start
 Acceder a la documentación en:
 
 ```
-http://localhost:3730/api-docs
+http://localhost:3000/api-docs
 ```
 
 ---
@@ -165,30 +166,28 @@ Debe reflejarse **también** en este archivo para mantener la coherencia con el 
 
 | Aspecto | Métrica | Status |
 |---------|---------|--------|
-| **Total Endpoints** | 31/31 | ✅ Completo |
-| **Endpoints Documentados** | 31/31 | ✅ 100% Cobertura |
-| **Endpoints Protegidos** | 30/31 | ✅ 96.8% |
-| **Puntos de Auditoría** | 16/16 | ✅ Completo |
+| **Total Endpoints** | 29/29 | ✅ Completo |
+| **Endpoints Documentados** | 29/29 | ✅ 100% Cobertura |
+| **Endpoints Protegidos** | 28/29 | ✅ 96.6% |
+| **Puntos de Auditoría** | Múltiples | ✅ Completo |
 | **Sistema de Auth** | JWT | ✅ Operacional |
-| **Base de Datos** | 12 tablas | ✅ Relacional |
+| **Base de Datos** | 11 tablas | ✅ Relacional |
 | **Swagger OpenAPI** | 3.0.0 | ✅ Actualizado |
 
 ---
 
-**Versión**: 1.1.0  
-**Última actualización**: 10/02/2026  
+**Versión**: 1.0.1  
+**Última actualización**: 11/02/2026  
 **Herramienta**: Swagger/OpenAPI 3.0  
-**Estado**: ✅ PRODUCCIÓN LISTA
+**Estado**: ✅ DESARROLLO COMPLETADO
 
 ---
 
 📌 **Estado Final:**
-✔ Documentación 100% completa para todos los módulos.
+✔ Documentación 100% completa para los 29 endpoints implementados.
 ✔ Sistema de autenticación JWT implementado y funcional.
 ✔ Sistema de auditoría completo en todas las operaciones.
-✔ Lista para integración con frontend (React Native).
-✔ Deployable a producción.
+✔ Base de datos relacional con 11 modelos.
+✔ Listo para integración con frontend (React Native).
 
 ---
-
-**Para más detalles, consulta:** `AUDITORIA_BACKEND_COMPLETA.md` (auditoría completa del sistema)
