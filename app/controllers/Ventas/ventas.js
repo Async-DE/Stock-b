@@ -35,7 +35,7 @@ const createVenta = async (req, res) => {
 
         const nuevaVenta = await prisma.ventas.create({
             data: {
-                variante_id: varianteIdInt, // Corregido: variante_id en schema vs varianteId en body
+                variante_id: varianteIdInt,
                 cantidad: cantidadInt,
                 total_venta: totalVentaFloat,
                 nombre_cliente,
@@ -44,7 +44,7 @@ const createVenta = async (req, res) => {
                 precio_contratista,
                 costo_compra,
                 costos_extras: costosExtrasFloat,
-                motivo_costo_extra: motivo_costo_extra || "", // Asegurar string si es requerido o null
+                motivo_costo_extra: motivo_costo_extra || "", 
             },
         });
 

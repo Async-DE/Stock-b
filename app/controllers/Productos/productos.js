@@ -1,5 +1,6 @@
 import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
+import { uploadFile } from "../../bucket_service/bucket.js";
 
 const createProducto = async (req, res) => {
   const { subcategoriaId, estantesId, ubicacion_id, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
@@ -22,12 +23,17 @@ const createProducto = async (req, res) => {
   await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
   await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
   await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
-  await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
 
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
+  }
+
+  // Validar foto (archivo o URL)
+  if (!req.file && !foto) {
+    return res.status(400).json({ error: "La foto es obligatoria (archivo o URL de texto)" });
   }
 
   //Validar que el codigo no exista en la base de datos
@@ -39,6 +45,21 @@ const createProducto = async (req, res) => {
   }
 
   try {
+    // Manejo de subida de archivo
+    let fotoUrl = foto;
+    if (req.file) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const extension = req.file.originalname.split('.').pop();
+      const key = `productos/${uniqueSuffix}.${extension}`;
+      
+      await uploadFile({
+        key: key,
+        body: req.file.buffer,
+        contentType: req.file.mimetype
+      });
+      fotoUrl = key;
+    }
+
     // Parsear valores numéricos
     const subcategoriaIdInt = parseInt(subcategoriaId, 10);
     const estantesIdInt = parseInt(estantesId, 10);
@@ -76,7 +97,7 @@ const createProducto = async (req, res) => {
         ganacia_publico: gananciaPublicoFloat,
         ganacia_contratista: gananciaContratistaFloat,
         ganancias_stock: gananciasStockFloat,
-        foto,
+        foto: fotoUrl,
       },
     });
 
@@ -116,12 +137,17 @@ const crearVariante = async (req, res) => {
   await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
   await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
   await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
-  await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
 
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
+  }
+
+  // Validar foto (archivo o URL)
+  if (!req.file && !foto) {
+    return res.status(400).json({ error: "La foto es obligatoria (archivo o URL de texto)" });
   }
 
   //Validar que el codigo no exista en la base de datos
@@ -133,6 +159,21 @@ const crearVariante = async (req, res) => {
   }
 
   try {
+    // Manejo de subida de archivo
+    let fotoUrl = foto;
+    if (req.file) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const extension = req.file.originalname.split('.').pop();
+      const key = `productos/${uniqueSuffix}.${extension}`;
+      
+      await uploadFile({
+        key: key,
+        body: req.file.buffer,
+        contentType: req.file.mimetype
+      });
+      fotoUrl = key;
+    }
+
     // Parsear valores numéricos
     const productoIdInt = parseInt(productoId, 10);
     const estantesIdInt = parseInt(estantesId, 10);
@@ -162,7 +203,7 @@ const crearVariante = async (req, res) => {
         ganacia_publico: gananciaPublicoFloat,
         ganacia_contratista: gananciaContratistaFloat,
         ganancias_stock: gananciasStockFloat,
-        foto,
+        foto: fotoUrl,
       },
     });
 
@@ -201,7 +242,7 @@ const updateVariante = async (req, res) => {
   await check("ganacia_publico").notEmpty().isFloat().withMessage("La ganancia público de la variante es obligatorio y debe ser un número decimal").run(req);
   await check("ganacia_contratista").notEmpty().isFloat().withMessage("La ganancia contratista de la variante es obligatorio y debe ser un número decimal").run(req);
   await check("ganancias_stock").notEmpty().isFloat().withMessage("Las ganancias stock de la variante es obligatorio y debe ser un número decimal").run(req);
-  await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
+  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
   
   const errors = validationResult(req);
 
@@ -209,7 +250,27 @@ const updateVariante = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
+  // Validar foto (archivo o URL)
+  if (!req.file && !foto) {
+    return res.status(400).json({ error: "La foto es obligatoria (archivo o URL de texto)" });
+  }
+
   try {
+    // Manejo de subida de archivo
+    let fotoUrl = foto;
+    if (req.file) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const extension = req.file.originalname.split('.').pop();
+      const key = `productos/${uniqueSuffix}.${extension}`;
+      
+      await uploadFile({
+        key: key,
+        body: req.file.buffer,
+        contentType: req.file.mimetype
+      });
+      fotoUrl = key;
+    }
+
     // Parsear valores numéricos
     const varianteIdInt = parseInt(varianteId, 10);
     const estantesIdInt = parseInt(estantesId, 10);
@@ -239,7 +300,7 @@ const updateVariante = async (req, res) => {
         ganacia_publico: gananciaPublicoFloat,
         ganacia_contratista: gananciaContratistaFloat,
         ganancias_stock: gananciasStockFloat,
-        foto,
+        foto: fotoUrl,
       },
     });
 
