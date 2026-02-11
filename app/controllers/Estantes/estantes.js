@@ -44,6 +44,15 @@ const createEstante = async (req, res) => {
       },
     });
 
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'CREATE',
+        estanteId: estante.id
+      }
+    });
+
     res.status(201).json(estante);
   } catch (error) {
     res.status(500).json({ error: "Error al crear el estante" });

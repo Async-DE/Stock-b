@@ -25,16 +25,28 @@ API backend para control de inventarios, productos, usuarios y ventas.
 
   tags: [
     {
+      name: "Autenticación",
+      description: "Endpoints de login y logout con JWT",
+    },
+    {
       name: "Usuarios",
       description: "Gestión de usuarios y estados",
     },
     {
       name: "Auditoría",
-      description: "Consultas de auditoría del sistema",
+      description: "Sistema de auditoría automático que registra todas las operaciones (CREATE, UPDATE, VENTA, LOGIN, LOGOUT). Permite consultar el historial completo del sistema, por usuario o por entidad específica. Soporta paginación con parámetros ?take= (max 100) y ?skip=.",
     },
     {
       name: "Productos",
       description: "Gestión de productos y variantes",
+    },
+    {
+      name: "Categorías",
+      description: "Gestión de categorías de productos",
+    },
+    {
+      name: "SubCategorías",
+      description: "Gestión de subcategorías dentro de categorías",
     },
     {
       name: "Ubicaciones",
@@ -51,6 +63,163 @@ API backend para control de inventarios, productos, usuarios y ventas.
   ],
 
   paths: {
+    /* ============================
+       AUTENTICACIÓN
+    ============================ */
+
+    "/auth/login": {
+      post: {
+        tags: ["Autenticación"],
+        summary: "Iniciar sesión",
+        description: "Autentica un usuario con su usuario/email-teléfono y contraseña. Retorna un token JWT sin expiración.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Login",
+              },
+              example: {
+                usuario_email: "usuario123",
+                password: "micontraseña",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Login exitoso",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/LoginResponse",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Errores de validación",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ValidationError",
+                },
+              },
+            },
+          },
+          401: {
+            description: "Credenciales inválidas",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "Usuario o contraseña incorrectos",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          403: {
+            description: "Usuario inactivo",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "Usuario inactivo",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    "/auth/logout": {
+      post: {
+        tags: ["Autenticación"],
+        summary: "Cerrar sesión",
+        description: "Revoca la sesión actual. Requiere token JWT válido.",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Logout exitoso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    mensaje: {
+                      type: "string",
+                      example: "Logout exitoso",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Token inválido o expirado",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    "/auth/logout-todas": {
+      post: {
+        tags: ["Autenticación"],
+        summary: "Revocar todas las sesiones",
+        description: "Revoca todas las sesiones activas del usuario actual. Útil después de cambio de contraseña.",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Todas las sesiones revocadas",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    mensaje: {
+                      type: "string",
+                      example: "Todas las sesiones han sido revocadas",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Token inválido o expirado",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
     /* ============================
        USUARIOS
     ============================ */
@@ -198,11 +367,41 @@ API backend para control de inventarios, productos, usuarios y ventas.
        AUDITORÍA
     ============================ */
 
-    "/usuarios/auditoria/general": {
+    "/auditoria/general": {
       get: {
         tags: ["Auditoría"],
-        summary: "Auditoría general",
-        description: "Obtiene los últimos 20 movimientos del sistema",
+        summary: "Auditoría general del sistema",
+        description: "Obtiene el historial completo de todas las operaciones realizadas en el sistema (CREATE, UPDATE, VENTA, LOGIN, LOGOUT). Incluye información del usuario que realizó la acción y las entidades afectadas. Por defecto retorna las últimas 20 operaciones, pero soporta paginación con parámetros ?take= y ?skip=",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: "take",
+            in: "query",
+            required: false,
+            schema: { 
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 20
+            },
+            description: "Número de registros a retornar (máximo 100)"
+          },
+          {
+            name: "skip",
+            in: "query",
+            required: false,
+            schema: { 
+              type: "integer",
+              minimum: 0,
+              default: 0
+            },
+            description: "Número de registros a omitir (para paginación)"
+          },
+        ],
         responses: {
           200: {
             description: "Lista de auditoría",
@@ -224,18 +423,46 @@ API backend para control de inventarios, productos, usuarios y ventas.
       },
     },
 
-    "/usuarios/auditoria/usuario/{id}": {
+    "/auditoria/usuario/{id}": {
       get: {
         tags: ["Auditoría"],
-        summary: "Auditoría por usuario",
-        description: "Obtiene los últimos 20 movimientos de un usuario específico",
+        summary: "Auditoría por usuario específico",
+        description: "Obtiene el historial de todas las operaciones realizadas por un usuario en particular. Útil para auditorías de seguridad o revisión de acciones de empleados. Soporta paginación.",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         parameters: [
           {
             name: "id",
             in: "path",
             required: true,
             schema: { type: "integer" },
-            description: "ID del usuario",
+            description: "ID del usuario a consultar",
+          },
+          {
+            name: "take",
+            in: "query",
+            required: false,
+            schema: { 
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 20
+            },
+            description: "Número de registros a retornar (máximo 100)"
+          },
+          {
+            name: "skip",
+            in: "query",
+            required: false,
+            schema: { 
+              type: "integer",
+              minimum: 0,
+              default: 0
+            },
+            description: "Número de registros a omitir (para paginación)"
           },
         ],
         responses: {
@@ -251,6 +478,210 @@ API backend para control de inventarios, productos, usuarios y ventas.
                 },
               },
             },
+          },
+          400: {
+            description: "ID de usuario inválido",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "ID de usuario inválido",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Token inválido o expirado",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    "/auditoria/entidad/{entidad}/{id}": {
+      get: {
+        tags: ["Auditoría"],
+        summary: "Auditoría por tipo de entidad e ID",
+        description: `Obtiene el historial de operaciones filtrado por tipo de entidad y su ID. 
+        
+**Entidades soportadas:**
+- **categorias**: Historial de cambios en categorías
+- **subcategorias**: Historial de cambios en subcategorías  
+- **productos**: Historial de cambios en productos
+- **variantes**: Historial de cambios en variantes de productos
+- **ventas**: Historial de ventas realizadas
+- **estantes**: Historial de cambios en estantes
+- **ubicaciones**: Historial de cambios en ubicaciones
+
+**Casos de uso:**
+- Rastrear todos los cambios en una categoría específica
+- Ver historial completo de un producto (creación, actualizaciones)
+- Auditar todas las ventas de una variante
+- Revisar modificaciones en configuración de estantes
+
+Soporta paginación con ?take= y ?skip=`,
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: "entidad",
+            in: "path",
+            required: true,
+            schema: { 
+              type: "string",
+              enum: ["categorias", "subcategorias", "productos", "variantes", "ventas", "estantes", "ubicaciones"]
+            },
+            description: "Tipo de entidad a consultar",
+            example: "productos"
+          },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            description: "ID de la entidad específica",
+            example: 1
+          },
+          {
+            name: "take",
+            in: "query",
+            required: false,
+            schema: { 
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 20
+            },
+            description: "Número de registros a retornar (máximo 100)"
+          },
+          {
+            name: "skip",
+            in: "query",
+            required: false,
+            schema: { 
+              type: "integer",
+              minimum: 0,
+              default: 0
+            },
+            description: "Número de registros a omitir (para paginación)"
+          },
+        ],
+        responses: {
+          200: {
+            description: "Auditoría de la entidad consultada",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/Auditoria",
+                  },
+                },
+                examples: {
+                  categoria: {
+                    summary: "Ejemplo: Auditoría de categoría",
+                    value: [
+                      {
+                        id: 15,
+                        accion: "CREATE",
+                        createdAt: "2026-02-10T08:15:30.000Z",
+                        usuario: {
+                          id: 1,
+                          nombre: "Admin Usuario",
+                          usuario: "admin"
+                        },
+                        categoria: {
+                          id: 1,
+                          nombre: "Electrodomésticos"
+                        }
+                      },
+                      {
+                        id: 28,
+                        accion: "UPDATE",
+                        createdAt: "2026-02-10T10:22:15.000Z",
+                        usuario: {
+                          id: 2,
+                          nombre: "Juan Pérez",
+                          usuario: "juanp"
+                        },
+                        categoria: {
+                          id: 1,
+                          nombre: "Electrodomésticos Premium"
+                        }
+                      }
+                    ]
+                  },
+                  producto: {
+                    summary: "Ejemplo: Auditoría de producto",
+                    value: [
+                      {
+                        id: 42,
+                        accion: "CREATE",
+                        createdAt: "2026-02-09T14:30:00.000Z",
+                        usuario: {
+                          id: 1,
+                          nombre: "Admin Usuario",
+                          usuario: "admin"
+                        },
+                        producto: {
+                          id: 5,
+                          nombre: "Refrigerador Samsung"
+                        }
+                      }
+                    ]
+                  },
+                  venta: {
+                    summary: "Ejemplo: Auditoría de venta",
+                    value: [
+                      {
+                        id: 89,
+                        accion: "VENTA",
+                        createdAt: "2026-02-10T16:45:00.000Z",
+                        usuario: {
+                          id: 3,
+                          nombre: "María López",
+                          usuario: "marialop"
+                        },
+                        venta: {
+                          id: 12,
+                          total_venta: 15500.00,
+                          nombre_cliente: "Carlos González"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+            },
+          },
+          400: {
+            description: "Entidad no válida o ID inválido",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "Entidad no válida. Usa: categorias, subcategorias, productos, variantes, ventas, estantes, ubicaciones",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Token inválido o expirado",
           },
           500: {
             description: "Error interno del servidor",
@@ -276,7 +707,7 @@ API backend para control de inventarios, productos, usuarios y ventas.
                 $ref: "#/components/schemas/CreateProductoConVariante",
               },
               example: {
-                categoriaId: 1,
+                subcategoriaId: 1,
                 estantesId: 2,
                 ubicacion_id: 1,
                 nombre: "Tornillo Phillips",
@@ -817,6 +1248,288 @@ API backend para control de inventarios, productos, usuarios y ventas.
     },
 
     /* ============================
+    CATEGORÍAS
+    ============================ */
+
+    "/categorias/crear": {
+      post: {
+        tags: ["Categorías"],
+        summary: "Crear categoría",
+        description: "Crea una nueva categoría de productos",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreateCategoria",
+              },
+              example: {
+                nombre: "Electrónica",
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Categoría creada con éxito",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "string",
+                  example: "Categoría creada con éxito",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Errores de validación o categoría duplicada",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ValidationError",
+                },
+              },
+            },
+          },
+          401: {
+            description: "No autorizado (token requerido)",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    "/categorias/ver": {
+      get: {
+        tags: ["Categorías"],
+        summary: "Obtener categorías",
+        description: "Obtiene la lista de todas las categorías con sus subcategorías",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Lista de categorías",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/Categoria",
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "No autorizado (token requerido)",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    "/categorias/actualizar/{id}": {
+      put: {
+        tags: ["Categorías"],
+        summary: "Actualizar categoría",
+        description: "Actualiza el nombre de una categoría existente",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            description: "ID de la categoría a actualizar",
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreateCategoria",
+              },
+              example: {
+                nombre: "Electrónica Avanzada",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Categoría actualizada con éxito",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "string",
+                  example: "Categoría actualizada con éxito",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Errores de validación",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ValidationError",
+                },
+              },
+            },
+          },
+          401: {
+            description: "No autorizado (token requerido)",
+          },
+          404: {
+            description: "Categoría no encontrada",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    /* ============================
+    SUBCATEGORÍAS
+    ============================ */
+
+    "/subcategorias/crear": {
+      post: {
+        tags: ["SubCategorías"],
+        summary: "Crear subcategoría",
+        description: "Crea una nueva subcategoría asociada a una categoría",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreateSubCategoria",
+              },
+              example: {
+                nombre: "Celulares",
+                categoriaId: 1,
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Subcategoría creada con éxito",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/SubCategoria",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Errores de validación",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ValidationError",
+                },
+              },
+            },
+          },
+          401: {
+            description: "No autorizado (token requerido)",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    "/subcategorias/actualizar/{id}": {
+      put: {
+        tags: ["SubCategorías"],
+        summary: "Actualizar subcategoría",
+        description: "Actualiza el nombre de una subcategoría existente",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            description: "ID de la subcategoría a actualizar",
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreateSubCategoria",
+              },
+              example: {
+                nombre: "Celulares Inteligentes",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Subcategoría actualizada con éxito",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/SubCategoria",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Errores de validación",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ValidationError",
+                },
+              },
+            },
+          },
+          401: {
+            description: "No autorizado (token requerido)",
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    /* ============================
     ESTANTES
     ============================ */
 
@@ -937,6 +1650,46 @@ API backend para control de inventarios, productos, usuarios y ventas.
   components: {
     schemas: {
       /* ============================
+          AUTENTICACIÓN
+      ============================ */
+
+      Login: {
+        type: "object",
+        required: ["usuario_email", "password"],
+        properties: {
+          usuario_email: {
+            type: "string",
+            description: "Nombre de usuario, email o teléfono",
+            example: "usuario123"
+          },
+          password: {
+            type: "string",
+            format: "password",
+            description: "Contraseña del usuario",
+            example: "micontraseña"
+          },
+        },
+      },
+
+      LoginResponse: {
+        type: "object",
+        properties: {
+          mensaje: {
+            type: "string",
+            example: "Login exitoso",
+          },
+          token: {
+            type: "string",
+            description: "JWT sin expiración",
+            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          },
+          usuario: {
+            $ref: "#/components/schemas/Usuario",
+          },
+        },
+      },
+
+      /* ============================
           USUARIOS
       ============================ */
 
@@ -1020,9 +1773,15 @@ API backend para control de inventarios, productos, usuarios y ventas.
 
       Auditoria: {
         type: "object",
+        description: "Registro de auditoría del sistema. Cada operación genera un registro que incluye el usuario que la realizó y la entidad afectada. Los campos de entidades (categoria, subcategoria, etc.) solo aparecen cuando son relevantes para esa operación.",
         properties: {
           id: {
-            type: "integer"
+            type: "integer",
+            description: "ID único del registro de auditoría"
+          },
+          usuario_id: {
+            type: "integer",
+            description: "ID del usuario que realizó la acción"
           },
           accion: {
             type: "string",
@@ -1031,10 +1790,12 @@ API backend para control de inventarios, productos, usuarios y ventas.
           },
           createdAt: {
             type: "string",
-            format: "date-time"
+            format: "date-time",
+            description: "Fecha y hora de la operación"
           },
           usuario: {
             type: "object",
+            description: "Información del usuario que realizó la operación",
             properties: {
               id: {
                 type: "integer"
@@ -1043,6 +1804,134 @@ API backend para control de inventarios, productos, usuarios y ventas.
                 type: "string"
               },
               usuario: {
+                type: "string"
+              },
+              email_phone: {
+                type: "string"
+              },
+            },
+          },
+          categoria: {
+            type: "object",
+            nullable: true,
+            description: "Datos de la categoría afectada (solo presente si la operación involucró una categoría)",
+            properties: {
+              id: {
+                type: "integer"
+              },
+              nombre: {
+                type: "string"
+              },
+            },
+          },
+          subcategoria: {
+            type: "object",
+            nullable: true,
+            description: "Datos de la subcategoría afectada (solo presente si la operación involucró una subcategoría)",
+            properties: {
+              id: {
+                type: "integer"
+              },
+              nombre: {
+                type: "string"
+              },
+              categoriaId: {
+                type: "integer"
+              },
+            },
+          },
+          producto: {
+            type: "object",
+            nullable: true,
+            description: "Datos del producto afectado (solo presente si la operación involucró un producto)",
+            properties: {
+              id: {
+                type: "integer"
+              },
+              nombre: {
+                type: "string"
+              },
+              subcategoriaId: {
+                type: "integer"
+              },
+            },
+          },
+          variante: {
+            type: "object",
+            nullable: true,
+            description: "Datos de la variante afectada (solo presente si la operación involucró una variante)",
+            properties: {
+              id: {
+                type: "integer"
+              },
+              nombre: {
+                type: "string"
+              },
+              codigo: {
+                type: "string"
+              },
+              color: {
+                type: "string"
+              },
+              cantidad: {
+                type: "integer"
+              },
+            },
+          },
+          venta: {
+            type: "object",
+            nullable: true,
+            description: "Datos de la venta registrada (solo presente si la operación fue una venta)",
+            properties: {
+              id: {
+                type: "integer"
+              },
+              total_venta: {
+                type: "number",
+                format: "float"
+              },
+              nombre_cliente: {
+                type: "string"
+              },
+              contacto_cliente: {
+                type: "string"
+              },
+            },
+          },
+          estante: {
+            type: "object",
+            nullable: true,
+            description: "Datos del estante afectado (solo presente si la operación involucró un estante)",
+            properties: {
+              id: {
+                type: "integer"
+              },
+              Seccion: {
+                type: "string"
+              },
+              nivel: {
+                type: "integer"
+              },
+              pasillo: {
+                type: "integer"
+              },
+            },
+          },
+          ubicacion: {
+            type: "object",
+            nullable: true,
+            description: "Datos de la ubicación afectada (solo presente si la operación involucró una ubicación)",
+            properties: {
+              id: {
+                type: "integer"
+              },
+              nombre: {
+                type: "string"
+              },
+              calle: {
+                type: "string"
+              },
+              colonia: {
                 type: "string"
               },
             },
@@ -1080,7 +1969,7 @@ API backend para control de inventarios, productos, usuarios y ventas.
         type: "object",
         description: "Crea un producto y su primera variante en una sola operación",
         required: [
-          "categoriaId",
+          "subcategoriaId",
           "estantesId",
           "ubicacion_id",
           "nombre",
@@ -1098,9 +1987,9 @@ API backend para control de inventarios, productos, usuarios y ventas.
           "foto",
         ],
         properties: {
-          categoriaId: {
+          subcategoriaId: {
             type: "integer",
-            description: "ID de la categoría del producto"
+            description: "ID de la subcategoría del producto (requerido)"
           },
           estantesId: {
             type: "integer",
@@ -1497,6 +2386,102 @@ API backend para control de inventarios, productos, usuarios y ventas.
       },
 
       /* ============================
+          CATEGORÍAS
+      ============================ */
+
+      CreateCategoria: {
+        type: "object",
+        required: ["nombre"],
+        properties: {
+          nombre: {
+            type: "string",
+            description: "Nombre único de la categoría",
+            example: "Electrónica"
+          },
+        },
+      },
+
+      Categoria: {
+        type: "object",
+        properties: {
+          id: {
+            type: "integer",
+            example: 1
+          },
+          nombre: {
+            type: "string",
+            example: "Electrónica"
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time"
+          },
+          subcategorias: {
+            type: "array",
+            items: {
+              $ref: "#/components/schemas/SubCategoria"
+            },
+            description: "Lista de subcategorías asociadas"
+          },
+        },
+      },
+
+      /* ============================
+          SUBCATEGORÍAS
+      ============================ */
+
+      CreateSubCategoria: {
+        type: "object",
+        required: ["nombre", "categoriaId"],
+        properties: {
+          nombre: {
+            type: "string",
+            description: "Nombre de la subcategoría",
+            example: "Celulares"
+          },
+          categoriaId: {
+            type: "integer",
+            description: "ID de la categoría padre",
+            example: 1
+          },
+        },
+      },
+
+      SubCategoria: {
+        type: "object",
+        properties: {
+          id: {
+            type: "integer",
+            example: 1
+          },
+          nombre: {
+            type: "string",
+            example: "Celulares"
+          },
+          categoriaId: {
+            type: "integer",
+            example: 1
+          },
+          ganancias_ventas: {
+            type: "number",
+            format: "float",
+            description: "Ganancia acumulada en ventas",
+            example: 0.0
+          },
+          ganancias_stock: {
+            type: "number",
+            format: "float",
+            description: "Ganancia potencial del stock",
+            example: 0.0
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time"
+          },
+        },
+      },
+
+      /* ============================
           UBICACIONES
       ============================ */
 
@@ -1733,6 +2718,14 @@ API backend para control de inventarios, productos, usuarios y ventas.
         },
       },
     },
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "JWT token sin expiración. Incluir en header: Authorization: Bearer {token}"
+      }
+    }
   },
 };
 

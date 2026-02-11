@@ -31,7 +31,7 @@ const createProducto = async (req, res) => {
   }
 
   //Validar que el codigo no exista en la base de datos
-  var productoExistente = await prisma.variantes.findUnique({
+  var productoExistente = await prisma.variantes.findFirst({
     where: { codigo },
   });
   if (productoExistente) {
@@ -59,7 +59,7 @@ const createProducto = async (req, res) => {
     });
 
     // Crear variante básica relacionada con el producto
-    await prisma.variantes.create({
+    const varianteCreada = await prisma.variantes.create({
       data: {
         producto_id: productoCreado.id,
         ubicacion_id: ubicacionIdInt,
@@ -80,10 +80,20 @@ const createProducto = async (req, res) => {
       },
     });
 
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'CREATE',
+        productoId: productoCreado.id,
+        varianteId: varianteCreada.id
+      }
+    });
+
     res.status(200).json("Producto y variante básica creados con éxito");
   } catch (error) {
     console.error("Error al crear el producto:", error);
-    res.status(500).json({ error: "Error al crear el producto" });
+    res.status(500).json({ error: "Error al crear el producto", details: error.message, code: error.code });
   }
 };
 
@@ -115,7 +125,7 @@ const crearVariante = async (req, res) => {
   }
 
   //Validar que el codigo no exista en la base de datos
-  var varianteExistente = await prisma.variantes.findUnique({
+  var varianteExistente = await prisma.variantes.findFirst({
     where: { codigo },
   });
   if (varianteExistente) {
@@ -135,7 +145,7 @@ const crearVariante = async (req, res) => {
     const gananciaContratistaFloat = parseFloat(ganacia_contratista);
     const gananciasStockFloat = parseFloat(ganancias_stock);
 
-    await prisma.variantes.create({
+    const nuevaVariante = await prisma.variantes.create({
       data: {
         producto_id: productoIdInt,
         ubicacion_id: ubicacionIdInt,
@@ -154,6 +164,16 @@ const crearVariante = async (req, res) => {
         ganancias_stock: gananciasStockFloat,
         foto,
       },
+    });
+
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'CREATE',
+        productoId: productoIdInt,
+        varianteId: nuevaVariante.id
+      }
     });
 
     res.status(201).json("Variante creada con éxito");
@@ -202,7 +222,7 @@ const updateVariante = async (req, res) => {
     const gananciaContratistaFloat = parseFloat(ganacia_contratista);
     const gananciasStockFloat = parseFloat(ganancias_stock);
 
-    await prisma.variantes.update({
+    const varianteActualizada = await prisma.variantes.update({
       where: { id: varianteIdInt },
       data: {
         ubicacion_id: ubicacionIdInt,
@@ -222,6 +242,17 @@ const updateVariante = async (req, res) => {
         foto,
       },
     });
+
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'UPDATE',
+        productoId: varianteActualizada.producto_id,
+        varianteId: varianteIdInt
+      }
+    });
+
     res.status(200).json("Variante actualizada con éxito");
 
   } catch (error) {

@@ -1,9 +1,3 @@
-/**
- * @swagger
- * tags:
- *   name: Productos
- *   description: Gestión de productos y variantes
- */
 import express from "express";
 import {
   createProducto,
@@ -13,20 +7,21 @@ import {
   getProductoById,
   getProductosBySearch,
 } from "../../controllers/Productos/productos.js";
+import { authMiddleware } from "../../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/crear", createProducto);
+router.post("/crear", authMiddleware, createProducto);
 
-router.get("/ver/:id", getProductoById);
+router.get("/ver/:id", authMiddleware, getProductoById);
 
-router.post("/verbuscar", getProductosBySearch);
+router.post("/verbuscar", authMiddleware, getProductosBySearch);
 
-router.get("/ver/categoria/:categoriaId", getProductosByCategoria);
+router.get("/ver/categoria/:categoriaId", authMiddleware, getProductosByCategoria);
 //--------------------------------------------------------
-router.post("/variantes/crear", crearVariante);
+router.post("/variantes/crear", authMiddleware, crearVariante);
 
-router.put("/variantes/actualizar/:varianteId", updateVariante);
+router.put("/variantes/actualizar/:varianteId", authMiddleware, updateVariante);
 
 
 export default router;

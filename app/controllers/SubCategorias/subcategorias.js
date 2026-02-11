@@ -21,6 +21,16 @@ const createSubCategoria = async (req, res) => {
         ganancias_stock: 0
       },
     });
+
+    // Registrar en auditoría
+    await prisma.auditoria.create({
+      data: {
+        usuario_id: req.user.id,
+        accion: 'CREATE',
+        subcategoriaId: nuevaSubCategoria.id
+      }
+    });
+
     res.status(201).json(nuevaSubCategoria);
   } catch (error) {
     console.error(error);
@@ -44,6 +54,16 @@ const updateSubCategoria = async (req, res) => {
             where: { id: parseInt(id) },
             data: { nombre }
         });
+
+        // Registrar en auditoría
+        await prisma.auditoria.create({
+            data: {
+                usuario_id: req.user.id,
+                accion: 'UPDATE',
+                subcategoriaId: parseInt(id)
+            }
+        });
+
         res.status(200).json(subcategoria);
     } catch (error) {
         console.error(error);
