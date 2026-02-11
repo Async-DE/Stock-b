@@ -44,12 +44,9 @@ async function deleteFile(key) {
   );
 }
 
-export { uploadFile, downloadFile, deleteFile };
+function getPublicUrl(key) {
+  const endpoint = process.env.BUCKET_ENDPOINT.replace(/\/$/, "");
+  return `${endpoint}/${process.env.BUCKET_NAME}/${key}`;
+}
 
-//Cargar archivos a un bucket
-
-// await uploadFile({
-//   key: "docs/contrato.pdf",
-//   body: fileBuffer,
-//   contentType: "application/pdf",
-// });
+export { uploadFile, downloadFile, deleteFile, getPublicUrl };
