@@ -31,17 +31,17 @@ Write-Log "Fecha: $(Get-Date -Format 'dd/MM/yyyy HH:mm:ss')" $colorINFO
 Write-Log "URL Base: $BaseUrl" $colorINFO
 Write-Log "Total Endpoints: 29`n" $colorINFO
 
-# LOGIN - OBTENER TOKEN VALIDO
-Write-Log "PASO 1: AUTENTICACION`n" $colorINFO
+# LOGIN - OBTENER TOKEN PRINCIPAL PARA TESTS
+Write-Log "PASO 1: AUTENTICACION PRINCIPAL`n" $colorINFO
 $loginBody = @{usuario_email='testuser_20260210000012'; password='Test123!'} | ConvertTo-Json
 
 try {
     $loginResp = Invoke-WebRequest "$BaseUrl/auth/login" -Method POST -Body $loginBody -ContentType 'application/json' -UseBasicParsing
     $token = ($loginResp.Content | ConvertFrom-Json).token
     $headers = @{'Authorization'="Bearer $token"}
-    Write-Log "[OK] Token obtenido" $colorOK
+    Write-Log "[OK] Token principal obtenido (Sesion 1)" $colorOK
 } catch {
-    Write-Log "[ERROR] Error en login" $colorERROR
+    Write-Log "[ERROR] Error en login principal" $colorERROR
     exit 1
 }
 
@@ -85,6 +85,41 @@ function Test-Endpoint {
 
 # Tests
 $num = 1
+
+# Auth - Login (1/3 endpoints de autenticacion - crear usuario temporal para test)
+Write-Log "`n[INFO] Creando sesion de prueba con usuario temporal..." $colorINFO
+$randomUser = "testLogin_$(Get-Random)"
+$createUserBody = @{nombre="Test Login"; usuario=$randomUser; email_phone="$randomUser@test.com"; password="TestLogin123!"} | ConvertTo-Json
+try {
+    # Crear usuario temporal para test de login
+    $createResp = Invoke-WebRequest "$BaseUrl/usuarios/crear" -Method POST -Body $createUserBody -Headers $headers -ContentType 'application/json' -UseBasicParsing
+    
+    # Probar login con el usuario recién creado (sesión 2)
+    $loginTestBody = @{usuario_email=$randomUser; password="TestLogin123!"} | ConvertTo-Json
+    $loginTestResp = Invoke-WebRequest "$BaseUrl/auth/login" -Method POST -Body $loginTestBody -ContentType 'application/json' -UseBasicParsing
+    $tokenTest = ($loginTestResp.Content | ConvertFrom-Json).token
+    $headersTest = @{'Authorization'="Bearer $tokenTest"}
+    
+    if ($loginTestResp.StatusCode -eq 200) {
+        $script:passCount++
+        $status = "[OK]"
+        $color = $colorOK
+    } else {
+        $script:failCount++
+        $status = "[WARN]"
+        $color = 'Yellow'
+    }
+    $line = "$status [$num/29] POST /auth/login -> $($loginTestResp.StatusCode)"
+    Write-Log $line $color
+} catch {
+    $script:failCount++
+    $sc = if ($_.Exception.Response.StatusCode) { $_.Exception.Response.StatusCode.Value__ } else { "N/A" }
+    $line = "[ERROR] [$num/29] POST /auth/login -> $sc"
+    Write-Log $line $colorERROR
+}
+$num++
+
+$num = 2
 
 # Usuarios (3 endpoints)
 Test-Endpoint $num POST "/usuarios/crear" @{nombre="User$(Get-Random)"; usuario="user$(Get-Random)"; email_phone="u$(Get-Random)@test.com"; password="Pass123"} "Usuarios"
@@ -156,21 +191,47 @@ $num++
 Test-Endpoint $num GET "/auditoria/entidad/productos/1" $null "Auditoria"
 $num++
 
-# Auth - Endpoints de logout (3 endpoints)
-Test-Endpoint $num POST "/auth/logout" $null "Auth"
+# Auth - Logout-todas (revocar TODAS las sesiones del usuario temporal con token de prueba)
+Write-Log "`n[INFO] Limpiando TODAS las sesiones del usuario temporal..." $colorINFO
+try {
+    if ($headersTest) {
+        $params = @{
+            Uri = "$BaseUrl/auth/logout-todas"
+            Method = 'POST'
+            Headers = $headersTest
+            ContentType = 'application/json'
+            UseBasicParsing = $true
+            ErrorAction = 'Stop'
+        }
+        $response = Invoke-WebRequest @params
+        $sc = $response.StatusCode
+        if ($sc -in @(200, 201)) {
+            $script:passCount++
+            $status = "[OK]"
+            $color = $colorOK
+        } else {
+            $script:failCount++
+            $status = "[WARN]"
+            $color = 'Yellow'
+        }
+    } else {
+        $script:failCount++
+        $sc = "N/A"
+        $status = "[ERROR]"
+        $color = $colorERROR
+    }
+} catch {
+    $script:failCount++
+    $sc = if ($_.Exception.Response.StatusCode) { $_.Exception.Response.StatusCode.Value__ } else { "N/A" }
+    $status = "[ERROR]"
+    $color = $colorERROR
+}
+$line = "$status [$num/29] POST /auth/logout-todas -> $sc"
+Write-Log $line $color
 $num++
 
-# Obtener novo token para probar logout-todas
-$loginBody2 = @{usuario_email='testuser_20260210000012'; password='Test123!'} | ConvertTo-Json
-try {
-    $loginResp2 = Invoke-WebRequest "$BaseUrl/auth/login" -Method POST -Body $loginBody2 -ContentType 'application/json' -UseBasicParsing
-    $token2 = ($loginResp2.Content | ConvertFrom-Json).token
-    $headers = @{'Authorization'="Bearer $token2"}
-} catch {
-    Write-Log "[ERROR] Error en segundo login" $colorERROR
-}
-
-Test-Endpoint $num POST "/auth/logout-todas" $null "Auth"
+# Auth - Logout (cerrar sesion principal)
+Test-Endpoint $num POST "/auth/logout" $null "Auth"
 $num++
 
 # RESULTADOS
