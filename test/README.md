@@ -195,8 +195,6 @@ $resp.StatusCode  # Debe devolver 200
 
 - `test_complete_api.ps1` - Script de teste automático
 - `test_results.txt` - Reporte generado (se crea al ejecutar)
-- `../MANUAL_TEST_REPORT.md` - Análisis técnico del problema y solución
-- `../CHECKLIST_TEST_FINAL_UPDATED.md` - Resultados detallados por endpoint
 
 ---
 
@@ -209,4 +207,4 @@ $resp.StatusCode  # Debe devolver 200
 
 ---
 
-**Generado:** Febrero 2026 | **Estado:** Completamente Funcional | **Confiabilidad:** 96.8% |funcionamiento correcto desde postman endpoint fallido solo en prueba automatica.
+**Generado:** 10 Febrero 2026 | **Estado:** Completamente Funcional | **Confiabilidad:** 96.8% |funcionamiento correcto desde postman endpoint fallido solo en prueba automatica.

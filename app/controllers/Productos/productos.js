@@ -333,7 +333,7 @@ const getProductosBySubcategoria = async (req, res) => {
   try {
     const productos = await prisma.productos.findMany({
       where: {
-        subcategoria: subcategoriaId,
+        subcategoriaId: parseInt(subcategoriaId),
       },
       include: {
         subcategoria: {
