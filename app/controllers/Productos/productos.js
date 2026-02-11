@@ -333,31 +333,33 @@ const getProductosByCategoria = async (req, res) => {
   try {
     const productos = await prisma.productos.findMany({
       where: {
-        subcategoria: {
-            categoriaId: parseInt(categoriaId)
-        }
+        subcategoria: categoriaId,
       },
       include: {
         subcategoria: {
           include: {
             categoria: {
-                select: {
-                    nombre: true
-                }
-            }
-          }
+              select: {
+                nombre: true,
+              },
+            },
+          },
         },
-        variantes:{
+        variantes: {
           select: {
+            foto: true,
             nombre: true,
             color: true,
-            medidas: true
-          }
+            medidas: true,
+            precio_publico: true,
+            precio_contratista: true,
+            cantidad: true,
+          },
         },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
 
     if (productos.length === 0) {
