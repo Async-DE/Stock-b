@@ -9,7 +9,7 @@ import { authMiddleware } from "../../middlewares/authMiddleware.js";
 const router = express.Router();
 
 /* Usuarios */
-router.post("/crear", createUsuario);
+router.post("/crear", authMiddleware, createUsuario);
 router.put("/estado/:id", authMiddleware, updateEstadoUsuario);
 router.get("/ver", authMiddleware, getUsuarios);
 
