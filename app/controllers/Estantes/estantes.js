@@ -6,17 +6,18 @@ const createEstante = async (req, res) => {
 
   await check("pasillo")
     .notEmpty()
-    .isInt()
+    .isInt({ min: 0 })
     .withMessage("Pasillo inválido")
     .run(req);
   await check("niveles")
     .notEmpty()
-    .isInt()
-    .withMessage("Nivel inválido")
+    .isInt({ min: 1 })
+    .withMessage("Cantidad de niveles inválida (mínimo 1)")
     .run(req);
   await check("seccion")
     .notEmpty()
     .isString()
+    .trim()
     .withMessage("Sección inválida")
     .run(req);
   await check("ubicacionId").isInt().withMessage("Ubicación inválida").run(req);
@@ -39,34 +40,49 @@ const createEstante = async (req, res) => {
       return res.status(404).json({ error: "La ubicación no existe" });
     }
 
-    const estante = await prisma.estantes.create({
-      data: {
-        pasillo: pasilloInt,
-        seccion,
-        ubicacionId: ubicacionIdInt,
+    // Usar transacción para garantizar atomicidad
+    const result = await prisma.$transaction(async (tx) => {
+      const estante = await tx.estantes.create({
+        data: {
+          pasillo: pasilloInt,
+          Seccion: seccion,
+          ubicacionId: ubicacionIdInt,
+        },
+      });
+
+      const nivelesData = Array.from({ length: nivelInt }, (_, i) => ({
+        estantesId: estante.id,
+        niveles: i + 1,
+      }));
+
+      const nivelesCreados = await tx.niveles.createMany({
+        data: nivelesData,
+      });
+
+      // Registrar en auditoría
+      await tx.auditoria.create({
+        data: {
+          usuario_id: req.user.id,
+          accion: "CREATE",
+          estanteId: estante.id,
+        },
+      });
+
+      return { estante, nivelesCreados };
+    });
+
+    // Obtener el estante completo con sus niveles
+    const estanteCompleto = await prisma.estantes.findUnique({
+      where: { id: result.estante.id },
+      include: {
+        niveles: true,
+        ubicacion: true,
       },
     });
 
-    const nivelesData = Array.from({ length: nivelInt }, (_, i) => ({
-      estanteId: estante.id,
-      nivel: i + 1,
-    }));
-
-    await prisma.niveles.createMany({
-      data: nivelesData,
-    });
-
-    // Registrar en auditoría
-    await prisma.auditoria.create({
-      data: {
-        usuario_id: req.user.id,
-        accion: "CREATE",
-        estanteId: estante.id,
-      },
-    });
-
-    res.status(201).json(estante);
+    res.status(201).json(estanteCompleto);
   } catch (error) {
+    console.error("Error al crear el estante:", error);
     res.status(500).json({ error: "Error al crear el estante" });
   }
 };
