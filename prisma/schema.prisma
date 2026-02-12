@@ -62,7 +62,6 @@ model niveles {
 model estantes {
   id        Int      @id @default(autoincrement())
   Seccion   String
-  nivel_id  Int
   pasillo   Int
   createdAt DateTime @default(now())
 
