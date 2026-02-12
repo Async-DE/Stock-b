@@ -101,7 +101,6 @@ model productos {
 model variantes {
   id           Int @id @default(autoincrement())
   producto_id  Int
-  ubicacion_id Int
   estante_id   Int
 
   foto String // se agregara un servicion de almacenamiento de imagenes
