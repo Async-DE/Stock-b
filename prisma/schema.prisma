@@ -46,7 +46,6 @@ model ubicacion {
   createdAt DateTime @default(now())
 
   estantes   estantes[]
-  variantes  variantes[]
   auditorias auditoria[]
 }
 
@@ -123,7 +122,6 @@ model variantes {
   ganancias_stock Float @default(0)
 
   producto   productos?  @relation(fields: [producto_id], references: [id])
-  ubicacion  ubicacion?  @relation(fields: [ubicacion_id], references: [id])
   estante    estantes?   @relation(fields: [estante_id], references: [id])
   ventas     ventas[]
   auditorias auditoria[]
