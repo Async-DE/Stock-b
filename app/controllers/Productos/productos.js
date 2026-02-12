@@ -529,14 +529,7 @@ const getProductosBySubcategoria = async (req, res) => {
           },
         },
         variantes: {
-          select: {
-            foto: true,
-            nombre: true,
-            color: true,
-            medidas: true,
-            precio_publico: true,
-            precio_contratista: true,
-            cantidad: true,
+          include: {
             niveles: {
               include: {
                 estantes: {
