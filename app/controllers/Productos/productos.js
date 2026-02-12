@@ -6,7 +6,6 @@ const createProducto = async (req, res) => {
   const {
     subcategoriaId,
     estantesId,
-    ubicacion_id,
     nombre,
     codigo,
     color,
@@ -16,9 +15,6 @@ const createProducto = async (req, res) => {
     precio_publico,
     precio_contratista,
     costo_compra,
-    ganacia_publico,
-    ganacia_contratista,
-    ganancias_stock,
     foto,
   } = req.body;
 
@@ -107,29 +103,6 @@ const createProducto = async (req, res) => {
       "El costo de compra de la variante es obligatorio y debe ser un número decimal",
     )
     .run(req);
-  await check("ganacia_publico")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia público de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganacia_contratista")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia contratista de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganancias_stock")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "Las ganancias stock de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
-
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -146,14 +119,10 @@ const createProducto = async (req, res) => {
   // Parsear valores numéricos
   const subcategoriaIdInt = parseInt(subcategoriaId, 10);
   const estantesIdInt = parseInt(estantesId, 10);
-  const ubicacionIdInt = parseInt(ubicacion_id, 10);
   const cantidadInt = parseInt(cantidad, 10);
   const precioPublicoFloat = parseFloat(precio_publico);
   const precioContratistaFloat = parseFloat(precio_contratista);
   const costoCompraFloat = parseFloat(costo_compra);
-  const gananciaPublicoFloat = parseFloat(ganacia_publico);
-  const gananciaContratistaFloat = parseFloat(ganacia_contratista);
-  const gananciasStockFloat = parseFloat(ganancias_stock);
 
   //Validar que el codigo no exista en la base de datos
   const productoExistente = await prisma.variantes.findFirst({
@@ -197,7 +166,6 @@ const createProducto = async (req, res) => {
     const varianteCreada = await prisma.variantes.create({
       data: {
         producto_id: productoCreado.id,
-        ubicacion_id: ubicacionIdInt,
         estante_id: estantesIdInt,
         nombre,
         codigo,
@@ -208,9 +176,6 @@ const createProducto = async (req, res) => {
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
-        ganacia_publico: gananciaPublicoFloat,
-        ganacia_contratista: gananciaContratistaFloat,
-        ganancias_stock: gananciasStockFloat,
         foto: fotoUrl,
       },
     });
@@ -239,7 +204,6 @@ const createProducto = async (req, res) => {
 const crearVariante = async (req, res) => {
   const {
     estantesId,
-    ubicacion_id,
     productoId,
     nombre,
     codigo,
@@ -250,20 +214,10 @@ const crearVariante = async (req, res) => {
     precio_publico,
     precio_contratista,
     costo_compra,
-    ganacia_publico,
-    ganacia_contratista,
-    ganancias_stock,
     foto,
   } = req.body;
 
   // Validar los datos de entrada variante
-  await check("ubicacion_id")
-    .notEmpty()
-    .isInt()
-    .withMessage(
-      "El ID de ubicación es obligatorio y debe ser un número entero",
-    )
-    .run(req);
   await check("estantesId")
     .notEmpty()
     .isInt()
@@ -337,28 +291,6 @@ const crearVariante = async (req, res) => {
       "El costo de compra de la variante es obligatorio y debe ser un número decimal",
     )
     .run(req);
-  await check("ganacia_publico")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia público de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganacia_contratista")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia contratista de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganancias_stock")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "Las ganancias stock de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
 
   const errors = validationResult(req);
 
@@ -400,19 +332,14 @@ const crearVariante = async (req, res) => {
     // Parsear valores numéricos
     const productoIdInt = parseInt(productoId, 10);
     const estantesIdInt = parseInt(estantesId, 10);
-    const ubicacionIdInt = parseInt(ubicacion_id, 10);
     const cantidadInt = parseInt(cantidad, 10);
     const precioPublicoFloat = parseFloat(precio_publico);
     const precioContratistaFloat = parseFloat(precio_contratista);
     const costoCompraFloat = parseFloat(costo_compra);
-    const gananciaPublicoFloat = parseFloat(ganacia_publico);
-    const gananciaContratistaFloat = parseFloat(ganacia_contratista);
-    const gananciasStockFloat = parseFloat(ganancias_stock);
 
     const nuevaVariante = await prisma.variantes.create({
       data: {
         producto_id: productoIdInt,
-        ubicacion_id: ubicacionIdInt,
         estante_id: estantesIdInt,
         nombre,
         codigo,
@@ -423,9 +350,6 @@ const crearVariante = async (req, res) => {
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
-        ganacia_publico: gananciaPublicoFloat,
-        ganacia_contratista: gananciaContratistaFloat,
-        ganancias_stock: gananciasStockFloat,
         foto: fotoUrl,
       },
     });
@@ -450,7 +374,6 @@ const updateVariante = async (req, res) => {
   const { varianteId } = req.params;
   const {
     estantesId,
-    ubicacion_id,
     nombre,
     codigo,
     color,
@@ -460,20 +383,9 @@ const updateVariante = async (req, res) => {
     precio_publico,
     precio_contratista,
     costo_compra,
-    ganacia_publico,
-    ganacia_contratista,
-    ganancias_stock,
-    foto,
   } = req.body;
 
   // Validar los datos de entrada variante
-  await check("ubicacion_id")
-    .notEmpty()
-    .isInt()
-    .withMessage(
-      "El ID de ubicación es obligatorio y debe ser un número entero",
-    )
-    .run(req);
   await check("estantesId")
     .notEmpty()
     .isInt()
@@ -542,28 +454,6 @@ const updateVariante = async (req, res) => {
       "El costo de compra de la variante es obligatorio y debe ser un número decimal",
     )
     .run(req);
-  await check("ganacia_publico")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia público de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganacia_contratista")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia contratista de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganancias_stock")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "Las ganancias stock de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
 
   const errors = validationResult(req);
 
@@ -597,14 +487,10 @@ const updateVariante = async (req, res) => {
     // Parsear valores numéricos
     const varianteIdInt = parseInt(varianteId, 10);
     const estantesIdInt = parseInt(estantesId, 10);
-    const ubicacionIdInt = parseInt(ubicacion_id, 10);
     const cantidadInt = parseInt(cantidad, 10);
     const precioPublicoFloat = parseFloat(precio_publico);
     const precioContratistaFloat = parseFloat(precio_contratista);
     const costoCompraFloat = parseFloat(costo_compra);
-    const gananciaPublicoFloat = parseFloat(ganacia_publico);
-    const gananciaContratistaFloat = parseFloat(ganacia_contratista);
-    const gananciasStockFloat = parseFloat(ganancias_stock);
 
     const varianteActualizada = await prisma.variantes.update({
       where: { id: varianteIdInt },
@@ -678,6 +564,14 @@ const getProductosBySubcategoria = async (req, res) => {
             precio_publico: true,
             precio_contratista: true,
             cantidad: true,
+            estante: {
+              select: {
+                Seccion: true,
+                nivel: true,
+                pasillo: true,
+                ubicacion: true,
+              },
+            },
           },
         },
       },
