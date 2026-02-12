@@ -4,6 +4,9 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { s3 } from "./s3-client.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 async function uploadFile({ key, body, contentType }) {
   const command = new PutObjectCommand({
@@ -16,6 +19,15 @@ async function uploadFile({ key, body, contentType }) {
   await s3.send(command);
 
   return `Archivo subido: ${key}`;
+}
+
+async function getFileStream(key) {
+  const command = new GetObjectCommand({
+    Bucket: process.env.BUCKET_NAME,
+    Key: key,
+  });
+  const response = await s3.send(command);
+  return response.Body;
 }
 
 async function downloadFile(key) {
@@ -44,12 +56,10 @@ async function deleteFile(key) {
   );
 }
 
-export { uploadFile, downloadFile, deleteFile };
+function getPublicUrl(key) {
+ 
+  const baseUrl = process.env.APP_URL || "http://localhost:3730"; 
+  return `${baseUrl}/stock/imagenes/${key}`;
+}
 
-//Cargar archivos a un bucket
-
-// await uploadFile({
-//   key: "docs/contrato.pdf",
-//   body: fileBuffer,
-//   contentType: "application/pdf",
-// });
+export { uploadFile, downloadFile, deleteFile, getPublicUrl, getFileStream };

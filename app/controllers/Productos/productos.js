@@ -1,6 +1,6 @@
 import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
-import { uploadFile } from "../../bucket_service/bucket.js";
+import { uploadFile, getPublicUrl } from "../../bucket_service/bucket.js";
 
 const createProducto = async (req, res) => {
   const { subcategoriaId, estantesId, ubicacion_id, nombre, codigo, color, descripcion, cantidad, medidas, precio_publico, precio_contratista, costo_compra, ganacia_publico, ganacia_contratista, ganancias_stock, foto } = req.body;
@@ -57,7 +57,7 @@ const createProducto = async (req, res) => {
         body: req.file.buffer,
         contentType: req.file.mimetype
       });
-      fotoUrl = key;
+      fotoUrl = getPublicUrl(key);
     }
 
     // Parsear valores numéricos
@@ -171,7 +171,7 @@ const crearVariante = async (req, res) => {
         body: req.file.buffer,
         contentType: req.file.mimetype
       });
-      fotoUrl = key;
+      fotoUrl = getPublicUrl(key);
     }
 
     // Parsear valores numéricos
@@ -268,7 +268,7 @@ const updateVariante = async (req, res) => {
         body: req.file.buffer,
         contentType: req.file.mimetype
       });
-      fotoUrl = key;
+      fotoUrl = getPublicUrl(key);
     }
 
     // Parsear valores numéricos
