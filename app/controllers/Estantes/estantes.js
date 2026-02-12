@@ -2,15 +2,24 @@ import prisma from "../../../prisma/prismaClient.js";
 import { check, validationResult } from "express-validator";
 
 const createEstante = async (req, res) => {
-  const { pasillo, seccion, nivel, ubicacionId } = req.body;
+  const { pasillo, seccion, niveles, ubicacionId } = req.body;
 
-  await check("pasillo").notEmpty().isInt().withMessage("Pasillo inválido").run(req);
-  await check("nivel").notEmpty().isInt().withMessage("Nivel inválido").run(req);
-  await check("seccion").notEmpty().isString().withMessage("Sección inválida").run(req);
-
-  if (ubicacionId !== undefined) {
-    await check("ubicacionId").isInt().withMessage("Ubicación inválida").run(req);
-  }
+  await check("pasillo")
+    .notEmpty()
+    .isInt()
+    .withMessage("Pasillo inválido")
+    .run(req);
+  await check("niveles")
+    .notEmpty()
+    .isInt()
+    .withMessage("Nivel inválido")
+    .run(req);
+  await check("seccion")
+    .notEmpty()
+    .isString()
+    .withMessage("Sección inválida")
+    .run(req);
+  await check("ubicacionId").isInt().withMessage("Ubicación inválida").run(req);
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -19,38 +28,41 @@ const createEstante = async (req, res) => {
 
   try {
     const pasilloInt = parseInt(pasillo, 10);
-    const nivelInt = parseInt(nivel, 10);
-    const ubicacionIdInt = ubicacionId ? parseInt(ubicacionId, 10) : null;
+    const nivelInt = parseInt(niveles, 10);
+    const ubicacionIdInt = parseInt(ubicacionId, 10);
 
-    if (ubicacionIdInt) {
-      const existeUbicacion = await prisma.ubicacion.findUnique({
-        where: { id: ubicacionIdInt },
-      });
+    const existeUbicacion = await prisma.ubicacion.findUnique({
+      where: { id: ubicacionIdInt },
+    });
 
-      if (!existeUbicacion) {
-        return res.status(404).json({ error: "La ubicación no existe" });
-      }
+    if (!existeUbicacion) {
+      return res.status(404).json({ error: "La ubicación no existe" });
     }
 
     const estante = await prisma.estantes.create({
       data: {
         pasillo: pasilloInt,
-        nivel: nivelInt,
-        Seccion: seccion,
+        seccion,
         ubicacionId: ubicacionIdInt,
       },
-      include: {
-        ubicacion: true,
-      },
+    });
+
+    const nivelesData = Array.from({ length: nivelInt }, (_, i) => ({
+      estanteId: estante.id,
+      nivel: i + 1,
+    }));
+
+    await prisma.niveles.createMany({
+      data: nivelesData,
     });
 
     // Registrar en auditoría
     await prisma.auditoria.create({
       data: {
         usuario_id: req.user.id,
-        accion: 'CREATE',
-        estanteId: estante.id
-      }
+        accion: "CREATE",
+        estanteId: estante.id,
+      },
     });
 
     res.status(201).json(estante);
