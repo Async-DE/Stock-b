@@ -20,12 +20,12 @@ const createVenta = async (req, res) => {
     .run(req);
   await check("cantidad")
     .notEmpty()
-    .isInt()
+    .isInt({ gt: 0 })
     .withMessage("cantidad debe ser un entero")
     .run(req);
   await check("total_venta")
     .notEmpty()
-    .isFloat()
+    .isFloat({ gt: 0 })
     .withMessage("total_venta debe ser un número decimal")
     .run(req);
   await check("nombre_cliente")
@@ -80,7 +80,6 @@ const createVenta = async (req, res) => {
     const precioVenta =
       tipo_venta === "publico" ? precio_publico : precio_contratista;
 
-    // Calcular ganancia unitaria según tipo de venta
     const gananciaUnitaria = precioVenta - costo_compra;
     const gananciaTotalVenta = gananciaUnitaria * cantidadInt;
 
@@ -90,8 +89,11 @@ const createVenta = async (req, res) => {
 
     if (costos_extras && Array.isArray(costos_extras)) {
       for (const costo of costos_extras) {
-        if (costo.costo && costo.motivo) {
+        if (costo && costo.motivo && costo.costo !== undefined) {
           const costoFloat = parseFloat(costo.costo);
+          if (Number.isNaN(costoFloat)) {
+            continue;
+          }
           totalCostosExtras += costoFloat;
           costosExtrasValidos.push({
             motivo: costo.motivo,
@@ -104,58 +106,61 @@ const createVenta = async (req, res) => {
     // Ganancia neta después de costos extras
     const gananciaNeta = gananciaTotalVenta - totalCostosExtras;
 
-    // Crear la venta
-    const nuevaVenta = await prisma.ventas.create({
-      data: {
-        variante_id: varianteIdInt,
-        cantidad: cantidadInt,
-        total_venta: totalVentaFloat,
-        nombre_cliente,
-        contacto_cliente,
-        precio_publico,
-        precio_contratista,
-        costo_compra,
-      },
-    });
-
-    // Actualizar la cantidad de la variante
-    await prisma.variantes.update({
-      where: { id: varianteIdInt },
-      data: {
-        cantidad: variante.cantidad - cantidadInt,
-        // Actualizar ganancias según tipo de venta
-        ...(tipo_venta === "publico" && {
-          ganacia_publico: variante.ganacia_publico + gananciaTotalVenta,
-        }),
-        ...(tipo_venta === "contratista" && {
-          ganacia_contratista:
-            variante.ganacia_contratista + gananciaTotalVenta,
-        }),
-        // Actualizar ganancias totales del stock
-        ganancias_stock: variante.ganancias_stock + gananciaNeta,
-      },
-    });
-
-    // Crear registros de costos extras si existen
-    if (costosExtrasValidos.length > 0) {
-      await prisma.costosExtras.createMany({
-        data: costosExtrasValidos.map((costo) => ({
-          venta_id: nuevaVenta.id,
-          motivo: costo.motivo,
-          costo: costo.costo,
-        })),
+    const nuevaVenta = await prisma.$transaction(async (tx) => {
+      const venta = await tx.ventas.create({
+        data: {
+          variante_id: varianteIdInt,
+          cantidad: cantidadInt,
+          total_venta: totalVentaFloat,
+          nombre_cliente,
+          contacto_cliente,
+          precio_publico,
+          precio_contratista,
+          costo_compra,
+        },
       });
-    }
 
-    // Registrar en auditoría
-    await prisma.auditoria.create({
-      data: {
-        usuario_id: req.user.id,
-        accion: "VENTA",
-        varianteId: varianteIdInt,
-        ventaId: nuevaVenta.id,
-        productoId: producto_id,
-      },
+      // Actualizar la cantidad de la variante
+      await tx.variantes.update({
+        where: { id: varianteIdInt },
+        data: {
+          cantidad: variante.cantidad - cantidadInt,
+          // Actualizar ganancias según tipo de venta
+          ...(tipo_venta === "publico" && {
+            ganacia_publico: variante.ganacia_publico + gananciaTotalVenta,
+          }),
+          ...(tipo_venta === "contratista" && {
+            ganacia_contratista:
+              variante.ganacia_contratista + gananciaTotalVenta,
+          }),
+          // Actualizar ganancias totales del stock
+          ganancias_stock: variante.ganancias_stock + gananciaNeta,
+        },
+      });
+
+      // Crear registros de costos extras si existen
+      if (costosExtrasValidos.length > 0) {
+        await tx.costosExtras.createMany({
+          data: costosExtrasValidos.map((costo) => ({
+            venta_id: venta.id,
+            motivo: costo.motivo,
+            costo: costo.costo,
+          })),
+        });
+      }
+
+      // Registrar en auditoría
+      await tx.auditoria.create({
+        data: {
+          usuario_id: req.user.id,
+          accion: "VENTA",
+          varianteId: varianteIdInt,
+          ventaId: venta.id,
+          productoId: producto_id,
+        },
+      });
+
+      return venta;
     });
 
     res.status(201).json({
@@ -181,10 +186,10 @@ const getVentasByDateRange = async (req, res) => {
           gte: new Date(startDate),
           lte: new Date(endDate),
         },
-        },
-        include: {
-            costosExtras: true,
-        },
+      },
+      include: {
+        costosExtras: true,
+      },
     });
     res.status(200).json(ventas);
   } catch (error) {
