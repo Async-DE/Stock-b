@@ -5,8 +5,7 @@ import { uploadFile, getPublicUrl } from "../../bucket_service/bucket.js";
 const createProducto = async (req, res) => {
   const {
     subcategoriaId,
-    estantesId,
-    ubicacion_id,
+    nivelesId,
     nombre,
     codigo,
     color,
@@ -16,9 +15,6 @@ const createProducto = async (req, res) => {
     precio_publico,
     precio_contratista,
     costo_compra,
-    ganacia_publico,
-    ganacia_contratista,
-    ganancias_stock,
     foto,
   } = req.body;
 
@@ -30,20 +26,13 @@ const createProducto = async (req, res) => {
       "El ID de subcategoría es obligatorio y debe ser un número entero",
     )
     .run(req);
-  await check("estantesId")
+  await check("nivelesId")
     .notEmpty()
     .isInt()
-    .withMessage("El estantesId es obligatorio y debe ser un número entero")
+    .withMessage("El nivelesId es obligatorio y debe ser un número entero")
     .run(req);
 
   // Validar los datos de entrada variante
-  await check("ubicacion_id")
-    .notEmpty()
-    .isInt()
-    .withMessage(
-      "El ID de ubicación es obligatorio y debe ser un número entero",
-    )
-    .run(req);
   await check("nombre")
     .notEmpty()
     .isString()
@@ -107,29 +96,6 @@ const createProducto = async (req, res) => {
       "El costo de compra de la variante es obligatorio y debe ser un número decimal",
     )
     .run(req);
-  await check("ganacia_publico")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia público de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganacia_contratista")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia contratista de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganancias_stock")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "Las ganancias stock de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
-
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -145,15 +111,11 @@ const createProducto = async (req, res) => {
 
   // Parsear valores numéricos
   const subcategoriaIdInt = parseInt(subcategoriaId, 10);
-  const estantesIdInt = parseInt(estantesId, 10);
-  const ubicacionIdInt = parseInt(ubicacion_id, 10);
+  const nivelesIdInt = parseInt(nivelesId, 10);
   const cantidadInt = parseInt(cantidad, 10);
   const precioPublicoFloat = parseFloat(precio_publico);
   const precioContratistaFloat = parseFloat(precio_contratista);
   const costoCompraFloat = parseFloat(costo_compra);
-  const gananciaPublicoFloat = parseFloat(ganacia_publico);
-  const gananciaContratistaFloat = parseFloat(ganacia_contratista);
-  const gananciasStockFloat = parseFloat(ganancias_stock);
 
   //Validar que el codigo no exista en la base de datos
   const productoExistente = await prisma.variantes.findFirst({
@@ -168,6 +130,13 @@ const createProducto = async (req, res) => {
   });
   if (!subcategoriaExistente) {
     return res.status(400).json({ error: "La subcategoría no existe" });
+  }
+
+  const nivelExistente = await prisma.niveles.findFirst({
+    where: { id: nivelesIdInt },
+  });
+  if (!nivelExistente) {
+    return res.status(400).json({ error: "El nivel no existe" });
   }
 
   try {
@@ -197,8 +166,7 @@ const createProducto = async (req, res) => {
     const varianteCreada = await prisma.variantes.create({
       data: {
         producto_id: productoCreado.id,
-        ubicacion_id: ubicacionIdInt,
-        estante_id: estantesIdInt,
+        nivelesId: nivelesIdInt,
         nombre,
         codigo,
         color,
@@ -208,9 +176,6 @@ const createProducto = async (req, res) => {
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
-        ganacia_publico: gananciaPublicoFloat,
-        ganacia_contratista: gananciaContratistaFloat,
-        ganancias_stock: gananciasStockFloat,
         foto: fotoUrl,
       },
     });
@@ -238,8 +203,7 @@ const createProducto = async (req, res) => {
 
 const crearVariante = async (req, res) => {
   const {
-    estantesId,
-    ubicacion_id,
+    nivelesId,
     productoId,
     nombre,
     codigo,
@@ -250,24 +214,14 @@ const crearVariante = async (req, res) => {
     precio_publico,
     precio_contratista,
     costo_compra,
-    ganacia_publico,
-    ganacia_contratista,
-    ganancias_stock,
     foto,
   } = req.body;
 
   // Validar los datos de entrada variante
-  await check("ubicacion_id")
+  await check("nivelesId")
     .notEmpty()
     .isInt()
-    .withMessage(
-      "El ID de ubicación es obligatorio y debe ser un número entero",
-    )
-    .run(req);
-  await check("estantesId")
-    .notEmpty()
-    .isInt()
-    .withMessage("El estantesId es obligatorio y debe ser un número entero")
+    .withMessage("El nivelesId es obligatorio y debe ser un número entero")
     .run(req);
   await check("productoId")
     .notEmpty()
@@ -337,28 +291,6 @@ const crearVariante = async (req, res) => {
       "El costo de compra de la variante es obligatorio y debe ser un número decimal",
     )
     .run(req);
-  await check("ganacia_publico")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia público de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganacia_contratista")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia contratista de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganancias_stock")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "Las ganancias stock de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
 
   const errors = validationResult(req);
 
@@ -399,21 +331,16 @@ const crearVariante = async (req, res) => {
 
     // Parsear valores numéricos
     const productoIdInt = parseInt(productoId, 10);
-    const estantesIdInt = parseInt(estantesId, 10);
-    const ubicacionIdInt = parseInt(ubicacion_id, 10);
+    const nivelesIdInt = parseInt(nivelesId, 10);
     const cantidadInt = parseInt(cantidad, 10);
     const precioPublicoFloat = parseFloat(precio_publico);
     const precioContratistaFloat = parseFloat(precio_contratista);
     const costoCompraFloat = parseFloat(costo_compra);
-    const gananciaPublicoFloat = parseFloat(ganacia_publico);
-    const gananciaContratistaFloat = parseFloat(ganacia_contratista);
-    const gananciasStockFloat = parseFloat(ganancias_stock);
 
     const nuevaVariante = await prisma.variantes.create({
       data: {
         producto_id: productoIdInt,
-        ubicacion_id: ubicacionIdInt,
-        estante_id: estantesIdInt,
+        nivelesId: nivelesIdInt,
         nombre,
         codigo,
         color,
@@ -423,9 +350,6 @@ const crearVariante = async (req, res) => {
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
-        ganacia_publico: gananciaPublicoFloat,
-        ganacia_contratista: gananciaContratistaFloat,
-        ganancias_stock: gananciasStockFloat,
         foto: fotoUrl,
       },
     });
@@ -449,8 +373,7 @@ const crearVariante = async (req, res) => {
 const updateVariante = async (req, res) => {
   const { varianteId } = req.params;
   const {
-    estantesId,
-    ubicacion_id,
+    nivelesId,
     nombre,
     codigo,
     color,
@@ -460,24 +383,13 @@ const updateVariante = async (req, res) => {
     precio_publico,
     precio_contratista,
     costo_compra,
-    ganacia_publico,
-    ganacia_contratista,
-    ganancias_stock,
-    foto,
   } = req.body;
 
   // Validar los datos de entrada variante
-  await check("ubicacion_id")
+  await check("nivelesId")
     .notEmpty()
     .isInt()
-    .withMessage(
-      "El ID de ubicación es obligatorio y debe ser un número entero",
-    )
-    .run(req);
-  await check("estantesId")
-    .notEmpty()
-    .isInt()
-    .withMessage("El estantesId es obligatorio y debe ser un número entero")
+    .withMessage("El nivelesId es obligatorio y debe ser un número entero")
     .run(req);
   await check("nombre")
     .notEmpty()
@@ -542,28 +454,6 @@ const updateVariante = async (req, res) => {
       "El costo de compra de la variante es obligatorio y debe ser un número decimal",
     )
     .run(req);
-  await check("ganacia_publico")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia público de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganacia_contratista")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "La ganancia contratista de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("ganancias_stock")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "Las ganancias stock de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  // await check("foto").notEmpty().isString().withMessage("La foto de la variante es obligatorio y debe ser una cadena de texto").run(req);
 
   const errors = validationResult(req);
 
@@ -571,46 +461,19 @@ const updateVariante = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  // Validar foto (archivo o URL)
-  if (!req.file && !foto) {
-    return res
-      .status(400)
-      .json({ error: "La foto es obligatoria (archivo o URL de texto)" });
-  }
-
   try {
-    // Manejo de subida de archivo
-    let fotoUrl = foto;
-    if (req.file) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const extension = req.file.originalname.split(".").pop();
-      const key = `productos/${uniqueSuffix}.${extension}`;
-
-      await uploadFile({
-        key: key,
-        body: req.file.buffer,
-        contentType: req.file.mimetype,
-      });
-      fotoUrl = getPublicUrl(key);
-    }
-
     // Parsear valores numéricos
     const varianteIdInt = parseInt(varianteId, 10);
-    const estantesIdInt = parseInt(estantesId, 10);
-    const ubicacionIdInt = parseInt(ubicacion_id, 10);
+    const nivelesIdInt = parseInt(nivelesId, 10);
     const cantidadInt = parseInt(cantidad, 10);
     const precioPublicoFloat = parseFloat(precio_publico);
     const precioContratistaFloat = parseFloat(precio_contratista);
     const costoCompraFloat = parseFloat(costo_compra);
-    const gananciaPublicoFloat = parseFloat(ganacia_publico);
-    const gananciaContratistaFloat = parseFloat(ganacia_contratista);
-    const gananciasStockFloat = parseFloat(ganancias_stock);
 
     const varianteActualizada = await prisma.variantes.update({
       where: { id: varianteIdInt },
       data: {
-        ubicacion_id: ubicacionIdInt,
-        estante_id: estantesIdInt,
+        nivelesId: nivelesIdInt,
         nombre,
         codigo,
         color,
@@ -620,10 +483,6 @@ const updateVariante = async (req, res) => {
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
-        ganacia_publico: gananciaPublicoFloat,
-        ganacia_contratista: gananciaContratistaFloat,
-        ganancias_stock: gananciasStockFloat,
-        foto: fotoUrl,
       },
     });
 
@@ -670,14 +529,14 @@ const getProductosBySubcategoria = async (req, res) => {
           },
         },
         variantes: {
-          select: {
-            foto: true,
-            nombre: true,
-            color: true,
-            medidas: true,
-            precio_publico: true,
-            precio_contratista: true,
-            cantidad: true,
+          include: {
+            niveles: {
+              include: {
+                estantes: {
+                  include: { ubicacion: true },
+                },
+              },
+            },
           },
         },
       },
@@ -707,14 +566,20 @@ const getProductoById = async (req, res) => {
       include: {
         subcategoria: {
           include: {
-            categoria: {
-              select: {
-                nombre: true,
+            categoria: true,
+          },
+        },
+        variantes: {
+          include: {
+            niveles: {
+              include: {
+                estantes: {
+                  include: { ubicacion: true },
+                },
               },
             },
           },
         },
-        variantes: true,
       },
     });
 
@@ -776,6 +641,13 @@ const getProductosBySearch = async (req, res) => {
             precio_publico: true,
             precio_contratista: true,
             cantidad: true,
+            niveles: {
+              include: {
+                estantes: {
+                  include: { ubicacion: true },
+                },
+              },
+            },
           },
         },
       },
