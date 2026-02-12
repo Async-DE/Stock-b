@@ -127,8 +127,8 @@ model variantes {
 
   ganacia_publico     Float @default(0)
   ganacia_contratista Float @default(0)
-
-  ganancias_stock Float @default(0)
+  
+  ganancias_stock     Float @default(0)
 
   producto productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
   niveles  niveles   @relation(fields: [nivelesId], references: [id], onDelete: Cascade)
@@ -145,8 +145,6 @@ model ventas {
   fecha_venta        DateTime @default(now())
   nombre_cliente     String
   contacto_cliente   String
-  costos_extras      Float
-  motivo_costo_extra String
 
   // Timestamp de la información del producto
   precio_publico     Float
