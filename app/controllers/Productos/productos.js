@@ -37,11 +37,18 @@ const createProducto = async (req, res) => {
   }
 
   //Validar que el codigo no exista en la base de datos
-  var productoExistente = await prisma.variantes.findFirst({
+  const productoExistente = await prisma.variantes.findFirst({
     where: { codigo },
   });
   if (productoExistente) {
     return res.status(400).json({ error: "La variante ya existe" });
+  }
+
+  const subcategoriaExistente = await prisma.subcategorias.findFirst({
+    where: { id: subcategoriaId },
+  });
+  if (!subcategoriaExistente) {
+    return res.status(400).json({ error: "La subcategoría no existe" });
   }
 
   try {
@@ -439,7 +446,11 @@ const getProductosBySearch = async (req, res) => {
             select: {
                 nombre: true,
                 color: true,
-                medidas: true
+                medidas: true,
+                foto: true,
+                precio_publico: true,
+                precio_contratista: true,
+                cantidad: true,
             }
         },
       },
