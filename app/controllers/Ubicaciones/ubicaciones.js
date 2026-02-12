@@ -140,7 +140,11 @@ const getUbicaciones = async (req, res) => {
   try {
     const ubicaciones = await prisma.ubicacion.findMany({
       include: {
-        estantes: true,
+        estantes: {
+          include: {
+            niveles: true,
+          },
+        },
       },
     });
     res.status(200).json(ubicaciones);
