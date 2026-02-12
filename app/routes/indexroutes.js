@@ -9,10 +9,12 @@ import categoriasRoutes from './Categorias/categorias.js';
 import subcategoriasRoutes from './SubCategorias/subcategorias.js';
 import usuariosRoutes from './Usuarios/usuarios.js';
 import auditoriaRoutes from './Auditoria/auditoria.js';
+import imagenesRoutes from './Imagenes/imagenes.js';
 const router = express.Router();
 
 // Rutas de autenticación (sin protección)
 router.use("/auth", authRoutes);
+router.use("/imagenes", imagenesRoutes);
 
 // Rutas protegidas
 router.use("/ubicaciones", ubicacionesRoutes);
