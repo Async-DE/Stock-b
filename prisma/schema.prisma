@@ -49,10 +49,20 @@ model ubicacion {
   auditorias auditoria[]
 }
 
+model niveles {
+  id         Int @id @default(autoincrement())
+  estantesId Int
+  niveles    Int
+
+  estantes estantes? @relation(fields: [estantesId], references: [id])
+
+  variantes variantes[]
+}
+
 model estantes {
   id        Int      @id @default(autoincrement())
   Seccion   String
-  nivel     Int
+  nivel_id  Int
   pasillo   Int
   createdAt DateTime @default(now())
 
@@ -60,6 +70,7 @@ model estantes {
   ubicacionId Int?
   variantes   variantes[]
   auditorias  auditoria[]
+  niveles     niveles[]
 }
 
 model categorias {
@@ -98,11 +109,11 @@ model productos {
 }
 
 model variantes {
-  id           Int @id @default(autoincrement())
-  producto_id  Int
-  estante_id   Int
+  id          Int @id @default(autoincrement())
+  producto_id Int
+  nivelesId   Int
 
-  foto String // se agregara un servicion de almacenamiento de imagenes
+  foto String
 
   nombre             String
   codigo             String
@@ -121,10 +132,13 @@ model variantes {
 
   ganancias_stock Float @default(0)
 
-  producto   productos?  @relation(fields: [producto_id], references: [id])
-  estante    estantes?   @relation(fields: [estante_id], references: [id])
+  producto productos? @relation(fields: [producto_id], references: [id])
+
   ventas     ventas[]
   auditorias auditoria[]
+  niveles    niveles     @relation(fields: [nivelesId], references: [id])
+  estantes   estantes?   @relation(fields: [estantesId], references: [id])
+  estantesId Int?
 }
 
 model ventas {
