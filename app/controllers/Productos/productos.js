@@ -117,6 +117,8 @@ const createProducto = async (req, res) => {
   const precioContratistaFloat = parseFloat(precio_contratista);
   const costoCompraFloat = parseFloat(costo_compra);
 
+  const valor_stock = (cantidadInt * costoCompraFloat).toFixed(2);
+
   //Validar que el codigo no exista en la base de datos
   const productoExistente = await prisma.variantes.findFirst({
     where: { codigo },
@@ -177,7 +179,7 @@ const createProducto = async (req, res) => {
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
         foto: fotoUrl,
-        valor_stock: (cantidadInt * costoCompraFloat).toFixed(2),
+        valor_stock: parseFloat(valor_stock),
       },
     });
 
@@ -188,7 +190,8 @@ const createProducto = async (req, res) => {
     await prisma.subcategorias.update({
       where: { id: subcategoriaIdInt },
       data: {
-        valor_stock: subcategoria.valor_stock + cantidadInt * costoCompraFloat,
+        valor_stock:
+          parseFloat(subcategoria.valor_stock) + parseFloat(valor_stock),
       },
     });
 
@@ -349,6 +352,8 @@ const crearVariante = async (req, res) => {
     const precioContratistaFloat = parseFloat(precio_contratista);
     const costoCompraFloat = parseFloat(costo_compra);
 
+    const valor_stock = (cantidadInt * costoCompraFloat).toFixed(2);
+
     const nuevaVariante = await prisma.variantes.create({
       data: {
         producto_id: productoIdInt,
@@ -363,7 +368,7 @@ const crearVariante = async (req, res) => {
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
         foto: fotoUrl,
-        valor_stock: (cantidadInt * costoCompraFloat).toFixed(2),
+        valor_stock: valor_stock,
       },
     });
 
@@ -371,12 +376,12 @@ const crearVariante = async (req, res) => {
       where: { id: productoIdInt },
       select: {
         subcategoriaId: true,
-      }
+      },
     });
 
-        const subcategoria = await prisma.subcategorias.findUnique({
-          where: { id: subcategoriaId.subcategoriaId },
-        });
+    const subcategoria = await prisma.subcategorias.findUnique({
+      where: { id: subcategoriaId.subcategoriaId },
+    });
 
     await prisma.subcategorias.update({
       where: { id: subcategoriaId.subcategoriaId },

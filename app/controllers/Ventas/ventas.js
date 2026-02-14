@@ -85,6 +85,7 @@ const createVenta = async (req, res) => {
         where: { id: variante.subcategoriaId },
         data: {
           ganancias_ventas: subcategoria.ganancias_ventas + totalVentaFloat,
+          valor_stock: parseFloat(subcategoria.valor_stock) - parseFloat(gananciaTotalVenta),
         },
       });
       return {
@@ -155,6 +156,7 @@ const createVenta = async (req, res) => {
           }),
           // Actualizar ganancias totales del stock
           ganancias_stock: variante.ganancias_stock + gananciaTotalVenta,
+          valor_stock: parseFloat(variante.valor_stock) - parseFloat(gananciaTotalVenta),
         },
       });
 
