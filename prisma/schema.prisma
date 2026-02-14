@@ -96,9 +96,9 @@ model subcategorias {
 
 model productos {
   id             Int  @id @default(autoincrement())
-  subcategoriaId Int?
+  subcategoriaId Int
 
-  subcategoria subcategorias? @relation(fields: [subcategoriaId], references: [id])
+  subcategoria subcategorias @relation(fields: [subcategoriaId], references: [id])
 
   createdAt DateTime @default(now())
 
