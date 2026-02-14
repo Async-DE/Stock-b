@@ -70,8 +70,27 @@ const createVenta = async (req, res) => {
 
     // Validar que hay cantidad suficiente
     if (variante.cantidad < cantidadInt) {
-      return res.status(400).json({ message: "Cantidad insuficiente en stock" });
+      return res
+        .status(400)
+        .json({ message: "Cantidad insuficiente en stock" });
     }
+
+    // actualizamos las ganancias de la subcategoría
+    const subcategoria = await prisma.subcategorias.findUnique({
+      where: { id: variante.subcategoriaId },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      const subcategoriaActualizada = await tx.subcategorias.update({
+        where: { id: variante.subcategoriaId },
+        data: {
+          ganancias_ventas: subcategoria.ganancias_ventas + totalVentaFloat,
+        },
+      });
+      return {
+        ganancias_ventas: subcategoriaActualizada.ganancias_ventas,
+      };
+    });
 
     const { precio_publico, precio_contratista, costo_compra, producto_id } =
       variante;
