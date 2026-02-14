@@ -177,6 +177,7 @@ const createProducto = async (req, res) => {
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
         foto: fotoUrl,
+        valor_stock: (cantidadInt * costoCompraFloat).toFixed(2),
       },
     });
 
