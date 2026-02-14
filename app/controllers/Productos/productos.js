@@ -608,6 +608,7 @@ const getProductosBySearch = async (req, res) => {
                   { nombre: { contains: search, mode: "insensitive" } },
                   { color: { contains: search, mode: "insensitive" } },
                   { codigo: { contains: search, mode: "insensitive" } },
+                  { descripcion: { contains: search, mode: "insensitive" } },
                 ],
               },
             },
