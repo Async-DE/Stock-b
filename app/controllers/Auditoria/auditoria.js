@@ -13,9 +13,8 @@ const includeAuditoriaRelacion = {
   subcategoria: true,
   estante: true,
   producto: true,
-  variante: true,
+  variante: { select: { id: true, nombre: true, codigo: true, color: true, medidas: true } },
   venta: true,
-  ubicacion: true,
 };
 
 const parsePagination = (query) => {
