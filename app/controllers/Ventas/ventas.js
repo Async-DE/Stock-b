@@ -65,12 +65,12 @@ const createVenta = async (req, res) => {
     });
 
     if (!variante) {
-      return res.status(404).json({ error: "Variante no encontrada" });
+      return res.status(404).json({ message: "Variante no encontrada" });
     }
 
     // Validar que hay cantidad suficiente
     if (variante.cantidad < cantidadInt) {
-      return res.status(400).json({ error: "Cantidad insuficiente en stock" });
+      return res.status(400).json({ message: "Cantidad insuficiente en stock" });
     }
 
     const { precio_publico, precio_contratista, costo_compra, producto_id } =
@@ -87,6 +87,7 @@ const createVenta = async (req, res) => {
     let totalCostosExtras = 0;
     const costosExtrasValidos = [];
 
+    // Validar y procesar costos extras
     if (costos_extras && Array.isArray(costos_extras)) {
       for (const costo of costos_extras) {
         if (costo && costo.motivo && costo.costo !== undefined) {
@@ -102,9 +103,9 @@ const createVenta = async (req, res) => {
         }
       }
     }
-
+    //
     // Ganancia neta después de costos extras
-    const gananciaNeta = gananciaTotalVenta - totalCostosExtras;
+    // const gananciaNeta = gananciaTotalVenta - totalCostosExtras;
 
     const nuevaVenta = await prisma.$transaction(async (tx) => {
       const venta = await tx.ventas.create({
@@ -134,7 +135,7 @@ const createVenta = async (req, res) => {
               variante.ganacia_contratista + gananciaTotalVenta,
           }),
           // Actualizar ganancias totales del stock
-          ganancias_stock: variante.ganancias_stock + gananciaNeta,
+          ganancias_stock: variante.ganancias_stock + gananciaTotalVenta,
         },
       });
 
