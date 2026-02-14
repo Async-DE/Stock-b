@@ -85,21 +85,6 @@ const createVenta = async (req, res) => {
       where: { id: subcategoriaId.subcategoriaId },
     });
 
-    await prisma.$transaction(async (tx) => {
-      const subcategoriaActualizada = await tx.subcategorias.update({
-        where: { id: subcategoriaId.subcategoriaId },
-        data: {
-          ganancias_ventas: subcategoria.ganancias_ventas + totalVentaFloat,
-          valor_stock:
-            parseFloat(subcategoria.valor_stock) -
-            parseFloat(gananciaTotalVenta),
-        },
-      });
-      return {
-        ganancias_ventas: subcategoriaActualizada.ganancias_ventas,
-      };
-    });
-
     const { precio_publico, precio_contratista, costo_compra, producto_id } =
       variante;
 
@@ -177,6 +162,22 @@ const createVenta = async (req, res) => {
           })),
         });
       }
+
+          await prisma.$transaction(async (tx) => {
+            const subcategoriaActualizada = await tx.subcategorias.update({
+              where: { id: subcategoriaId.subcategoriaId },
+              data: {
+                ganancias_ventas:
+                  subcategoria.ganancias_ventas + totalVentaFloat,
+                valor_stock:
+                  parseFloat(subcategoria.valor_stock) -
+                  parseFloat(gananciaTotalVenta),
+              },
+            });
+            return {
+              ganancias_ventas: subcategoriaActualizada.ganancias_ventas,
+            };
+          });
 
       // Registrar en auditoría
       await tx.auditoria.create({
