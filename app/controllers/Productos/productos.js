@@ -352,6 +352,7 @@ const crearVariante = async (req, res) => {
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
         foto: fotoUrl,
+        valor_stock: (cantidadInt * costoCompraFloat).toFixed(2),
       },
     });
 
@@ -529,17 +530,7 @@ const getProductosBySubcategoria = async (req, res) => {
             },
           },
         },
-        variantes: {
-          include: {
-            niveles: {
-              include: {
-                estantes: {
-                  include: { ubicacion: true },
-                },
-              },
-            },
-          },
-        },
+        variantes: true,
       },
       orderBy: {
         createdAt: "desc",
