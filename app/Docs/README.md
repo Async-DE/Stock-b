@@ -22,7 +22,7 @@ La documentación está definida usando **OpenAPI 3.0.0** y es consumida mediant
 
 ## 🧱 Alcance de la Documentación
 
-La documentación incluye **todos los módulos del backend** (29 endpoints totales):
+La documentación incluye **todos los módulos del backend** (30 endpoints totales):
 
 - **Autenticación** (3 endpoints)
 - **Usuarios** (3 endpoints)
@@ -34,8 +34,9 @@ La documentación incluye **todos los módulos del backend** (29 endpoints total
 - **Ubicaciones** (3 endpoints)
 - **Estantes** (3 endpoints)
 - **Ventas** (3 endpoints)
+- **Imágenes** (1 endpoint público)
 
-✅ **Status:** Documentación completa para los 29 endpoints implementados
+✅ **Status:** Documentación completa para los 30 endpoints implementados
 
 ---
 
@@ -48,6 +49,7 @@ La documentación incluye **todos los módulos del backend** (29 endpoints total
 
 ### Endpoints Públicos
 - `POST /auth/login` → Obtiene JWT token
+- `GET /imagenes/:carpeta/:archivo` → Sirve imágenes desde S3
 
 ### Endpoints Protegidos
 - Los 28 endpoints restantes requieren:
@@ -166,9 +168,10 @@ Debe reflejarse **también** en este archivo para mantener la coherencia con el 
 
 | Aspecto | Métrica | Status |
 |---------|---------|--------|
-| **Total Endpoints** | 29/29 | ✅ Completo |
-| **Endpoints Documentados** | 29/29 | ✅ 100% Cobertura |
-| **Endpoints Protegidos** | 28/29 | ✅ 96.6% |
+| **Total Endpoints** | 30/30 | ✅ Completo |
+| **Endpoints Documentados** | 30/30 | ✅ 100% Cobertura |
+| **Endpoints Protegidos** | 28/30 | ✅ 93.3% |
+| **Endpoints Públicos** | 2/30 | ✅ Login + Imágenes |
 | **Puntos de Auditoría** | Múltiples | ✅ Completo |
 | **Sistema de Auth** | JWT | ✅ Operacional |
 | **Base de Datos** | 11 tablas | ✅ Relacional |
@@ -176,18 +179,49 @@ Debe reflejarse **también** en este archivo para mantener la coherencia con el 
 
 ---
 
-**Versión**: 1.0.1  
-**Última actualización**: 11/02/2026  
+**Versión**: 1.0.2  
+**Última actualización**: 14/02/2026  
 **Herramienta**: Swagger/OpenAPI 3.0  
 **Estado**: ✅ DESARROLLO COMPLETADO
 
 ---
 
 📌 **Estado Final:**
-✔ Documentación 100% completa para los 29 endpoints implementados.
+✔ Documentación 100% completa para los 30 endpoints implementados.
 ✔ Sistema de autenticación JWT implementado y funcional.
 ✔ Sistema de auditoría completo en todas las operaciones.
 ✔ Base de datos relacional con 11 modelos.
+✔ Esquemas de datos alineados con Prisma.
 ✔ Listo para integración con frontend (React Native).
+
+---
+
+## 💡 Notas de la Última Actualización (v1.0.2)
+
+### Correcciones Aplicadas:
+
+1. **Endpoint agregado:**
+   - `GET /imagenes/:carpeta/:archivo` - Servicio de imágenes desde S3
+
+2. **Esquemas de Productos/Variantes corregidos:**
+   - Cambiado `estantesId` y `ubicacion_id` por `nivelesId`
+   - Relación correcta: variantes → niveles → estantes → ubicación
+   - Eliminados campos calculados (`ganacia_publico`, `ganacia_contratista`, `ganancias_stock`)
+
+3. **Esquema de Ventas corregido:**
+   - Campo **obligatorio** agregado: `tipo_venta` ("publico" | "contratista")
+   - `costos_extras` corregido: de `number` a `array` de objetos `{motivo, costo}`
+   - Eliminado `motivo_costo_extra` (ahora parte del array)
+   - Modelo `Venta` ahora incluye relación `costosExtras[]`
+
+4. **Esquema de Estantes corregido:**
+   - Cambiado `nivel` (singular) por `niveles` (cantidad a crear)
+   - Modelo `Estante` ahora incluye relación `niveles[]`
+
+5. **Descripciones mejoradas:**
+   - Aclarada la posibilidad de enviar fotos como URL o multipart/form-data
+   - Documentados los snapshots de precios en ventas
+
+**Resultado:** Swagger ahora refleja con precisión el 100% de la implementación real del backend.
 
 ---

@@ -65,6 +65,10 @@ API backend para control de inventarios, productos, usuarios y ventas.
       name: "Estantes",
       description: "Gestión de estantes de almacenamiento",
     },
+    {
+      name: "Imágenes",
+      description: "Servicio de imágenes desde S3",
+    },
   ],
 
   paths: {
@@ -718,7 +722,7 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Productos"],
         summary: "Crear producto con variante base",
         description:
-          "Crea un producto y su variante inicial en una sola operación",
+          "Crea un producto y su variante inicial en una sola operación. La foto puede enviarse como URL en el body o como archivo multipart/form-data.",
         requestBody: {
           required: true,
           content: {
@@ -728,8 +732,7 @@ Soporta paginación con ?take= y ?skip=`,
               },
               example: {
                 subcategoriaId: 1,
-                estantesId: 2,
-                ubicacion_id: 1,
+                nivelesId: 5,
                 nombre: "Tornillo Phillips",
                 codigo: "TOR-PH-001",
                 color: "Plateado",
@@ -739,9 +742,6 @@ Soporta paginación con ?take= y ?skip=`,
                 precio_publico: 1.5,
                 precio_contratista: 1.2,
                 costo_compra: 0.8,
-                ganacia_publico: 0.7,
-                ganacia_contratista: 0.4,
-                ganancias_stock: 350.0,
                 foto: "https://ejemplo.com/tornillo.jpg",
               },
             },
@@ -903,7 +903,7 @@ Soporta paginación con ?take= y ?skip=`,
       post: {
         tags: ["Productos"],
         summary: "Crear variante adicional",
-        description: "Crea una nueva variante para un producto existente",
+        description: "Crea una nueva variante para un producto existente. La foto puede enviarse como URL o archivo multipart/form-data.",
         requestBody: {
           required: true,
           content: {
@@ -947,7 +947,7 @@ Soporta paginación con ?take= y ?skip=`,
       put: {
         tags: ["Productos"],
         summary: "Actualizar variante",
-        description: "Actualiza los datos de una variante existente",
+        description: "Actualiza los datos de una variante existente. La foto puede enviarse como URL o archivo multipart/form-data.",
         parameters: [
           {
             name: "varianteId",
@@ -1553,6 +1553,67 @@ Soporta paginación con ?take= y ?skip=`,
     },
 
     /* ============================
+    IMÁGENES
+    ============================ */
+
+    "/imagenes/{carpeta}/{archivo}": {
+      get: {
+        tags: ["Imágenes"],
+        summary: "Obtener imagen desde S3",
+        description:
+          "Sirve imágenes almacenadas en S3. Este endpoint es público y se usa para mostrar las fotos de productos en la aplicación.",
+        parameters: [
+          {
+            name: "carpeta",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+            description: "Carpeta donde está almacenada la imagen (ej: productos)",
+            example: "productos",
+          },
+          {
+            name: "archivo",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+            description: "Nombre del archivo de imagen",
+            example: "1234567890-123456789.jpg",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Imagen encontrada",
+            content: {
+              "image/jpeg": {
+                schema: {
+                  type: "string",
+                  format: "binary",
+                },
+              },
+              "image/png": {
+                schema: {
+                  type: "string",
+                  format: "binary",
+                },
+              },
+            },
+          },
+          404: {
+            description: "Imagen no encontrada",
+            content: {
+              "text/plain": {
+                example: "Imagen no encontrada",
+              },
+            },
+          },
+          500: {
+            description: "Error interno del servidor",
+          },
+        },
+      },
+    },
+
+    /* ============================
     ESTANTES
     ============================ */
 
@@ -2007,11 +2068,10 @@ Soporta paginación con ?take= y ?skip=`,
       CreateProductoConVariante: {
         type: "object",
         description:
-          "Crea un producto y su primera variante en una sola operación",
+          "Crea un producto y su primera variante en una sola operación. Nota: La variante se relaciona con un nivel específico del estante, no directamente con el estante o ubicación.",
         required: [
           "subcategoriaId",
-          "estantesId",
-          "ubicacion_id",
+          "nivelesId",
           "nombre",
           "codigo",
           "color",
@@ -2021,9 +2081,6 @@ Soporta paginación con ?take= y ?skip=`,
           "precio_publico",
           "precio_contratista",
           "costo_compra",
-          "ganacia_publico",
-          "ganacia_contratista",
-          "ganancias_stock",
           "foto",
         ],
         properties: {
@@ -2031,13 +2088,9 @@ Soporta paginación con ?take= y ?skip=`,
             type: "integer",
             description: "ID de la subcategoría del producto (requerido)",
           },
-          estantesId: {
+          nivelesId: {
             type: "integer",
-            description: "ID del estante donde se almacena",
-          },
-          ubicacion_id: {
-            type: "integer",
-            description: "ID de la ubicación física",
+            description: "ID del nivel del estante donde se almacena la variante. El nivel pertenece a un estante específico que a su vez está en una ubicación.",
           },
           nombre: {
             type: "string",
@@ -2082,25 +2135,9 @@ Soporta paginación con ?take= y ?skip=`,
             minimum: 0,
             description: "Costo de adquisición",
           },
-          ganacia_publico: {
-            type: "number",
-            format: "float",
-            description: "Ganancia acumulada en ventas públicas",
-          },
-          ganacia_contratista: {
-            type: "number",
-            format: "float",
-            description: "Ganancia acumulada en ventas a contratistas",
-          },
-          ganancias_stock: {
-            type: "number",
-            format: "float",
-            description: "Ganancia total potencial del stock",
-          },
           foto: {
             type: "string",
-            format: "uri",
-            description: "URL de la imagen del producto",
+            description: "URL de la imagen del producto o archivo multipart/form-data",
           },
         },
       },
@@ -2110,8 +2147,7 @@ Soporta paginación con ?take= y ?skip=`,
         description: "Crea una variante adicional para un producto existente",
         required: [
           "productoId",
-          "estantesId",
-          "ubicacion_id",
+          "nivelesId",
           "nombre",
           "codigo",
           "color",
@@ -2121,9 +2157,6 @@ Soporta paginación con ?take= y ?skip=`,
           "precio_publico",
           "precio_contratista",
           "costo_compra",
-          "ganacia_publico",
-          "ganacia_contratista",
-          "ganancias_stock",
           "foto",
         ],
         properties: {
@@ -2131,13 +2164,9 @@ Soporta paginación con ?take= y ?skip=`,
             type: "integer",
             description: "ID del producto padre",
           },
-          estantesId: {
+          nivelesId: {
             type: "integer",
-            description: "ID del estante",
-          },
-          ubicacion_id: {
-            type: "integer",
-            description: "ID de la ubicación",
+            description: "ID del nivel del estante donde se almacena",
           },
           nombre: {
             type: "string",
@@ -2173,21 +2202,9 @@ Soporta paginación con ?take= y ?skip=`,
             format: "float",
             minimum: 0,
           },
-          ganacia_publico: {
-            type: "number",
-            format: "float",
-          },
-          ganacia_contratista: {
-            type: "number",
-            format: "float",
-          },
-          ganancias_stock: {
-            type: "number",
-            format: "float",
-          },
           foto: {
             type: "string",
-            format: "uri",
+            description: "URL de la imagen o archivo multipart/form-data",
           },
         },
       },
@@ -2197,8 +2214,7 @@ Soporta paginación con ?take= y ?skip=`,
         description:
           "Actualiza una variante existente (todos los campos son requeridos según controlador)",
         required: [
-          "estantesId",
-          "ubicacion_id",
+          "nivelesId",
           "nombre",
           "codigo",
           "color",
@@ -2208,17 +2224,12 @@ Soporta paginación con ?take= y ?skip=`,
           "precio_publico",
           "precio_contratista",
           "costo_compra",
-          "ganacia_publico",
-          "ganacia_contratista",
-          "ganancias_stock",
           "foto",
         ],
         properties: {
-          estantesId: {
+          nivelesId: {
             type: "integer",
-          },
-          ubicacion_id: {
-            type: "integer",
+            description: "ID del nivel del estante",
           },
           nombre: {
             type: "string",
@@ -2254,21 +2265,9 @@ Soporta paginación con ?take= y ?skip=`,
             format: "float",
             minimum: 0,
           },
-          ganacia_publico: {
-            type: "number",
-            format: "float",
-          },
-          ganacia_contratista: {
-            type: "number",
-            format: "float",
-          },
-          ganancias_stock: {
-            type: "number",
-            format: "float",
-          },
           foto: {
             type: "string",
-            format: "uri",
+            description: "URL de la imagen o archivo multipart/form-data",
           },
         },
       },
@@ -2361,13 +2360,9 @@ Soporta paginación con ?take= y ?skip=`,
             type: "integer",
             description: "ID del producto padre",
           },
-          ubicacion_id: {
+          nivelesId: {
             type: "integer",
-            description: "ID de la ubicación física",
-          },
-          estante_id: {
-            type: "integer",
-            description: "ID del estante",
+            description: "ID del nivel del estante donde se almacena",
           },
           nombre: {
             type: "string",
@@ -2594,6 +2589,7 @@ Soporta paginación con ?take= y ?skip=`,
           "total_venta",
           "nombre_cliente",
           "contacto_cliente",
+          "tipo_venta",
         ],
         properties: {
           varianteId: {
@@ -2621,17 +2617,37 @@ Soporta paginación con ?take= y ?skip=`,
             description: "Teléfono o email del cliente",
             example: "+52 555 987 6543",
           },
-          costos_extras: {
-            type: "number",
-            format: "float",
-            minimum: 0,
-            description: "Costos adicionales (envío, instalación, etc.)",
-            default: 0,
-          },
-          motivo_costo_extra: {
+          tipo_venta: {
             type: "string",
-            description: "Descripción de los costos extras",
-            example: "Envío a domicilio",
+            enum: ["publico", "contratista"],
+            description: "Tipo de venta que determina el precio y ganancia a calcular",
+            example: "publico",
+          },
+          costos_extras: {
+            type: "array",
+            description: "Array de costos adicionales (envío, instalación, etc.)",
+            items: {
+              type: "object",
+              required: ["motivo", "costo"],
+              properties: {
+                motivo: {
+                  type: "string",
+                  description: "Descripción del costo extra",
+                  example: "Envío a domicilio",
+                },
+                costo: {
+                  type: "number",
+                  format: "float",
+                  minimum: 0,
+                  description: "Monto del costo extra",
+                  example: 150.0,
+                },
+              },
+            },
+            example: [
+              { motivo: "Envío", costo: 150.0 },
+              { motivo: "Instalación", costo: 300.0 },
+            ],
           },
         },
       },
@@ -2664,27 +2680,46 @@ Soporta paginación con ?take= y ?skip=`,
           contacto_cliente: {
             type: "string",
           },
-          costos_extras: {
-            type: "number",
-            format: "float",
-          },
-          motivo_costo_extra: {
-            type: "string",
-          },
           precio_publico: {
             type: "number",
             format: "float",
-            description: "Precio público al momento de la venta",
+            description: "Precio público al momento de la venta (snapshot)",
           },
           precio_contratista: {
             type: "number",
             format: "float",
-            description: "Precio contratista al momento de la venta",
+            description: "Precio contratista al momento de la venta (snapshot)",
           },
           costo_compra: {
             type: "number",
             format: "float",
-            description: "Costo de compra al momento de la venta",
+            description: "Costo de compra al momento de la venta (snapshot)",
+          },
+          costosExtras: {
+            type: "array",
+            description: "Relación con costos adicionales de la venta",
+            items: {
+              type: "object",
+              properties: {
+                id: {
+                  type: "integer",
+                },
+                venta_id: {
+                  type: "integer",
+                },
+                motivo: {
+                  type: "string",
+                },
+                costo: {
+                  type: "number",
+                  format: "float",
+                },
+                createdAt: {
+                  type: "string",
+                  format: "date-time",
+                },
+              },
+            },
           },
         },
       },
@@ -2695,11 +2730,11 @@ Soporta paginación con ?take= y ?skip=`,
 
       CreateEstante: {
         type: "object",
-        required: ["pasillo", "seccion", "nivel"],
+        required: ["pasillo", "seccion", "niveles"],
         properties: {
           pasillo: {
             type: "integer",
-            minimum: 1,
+            minimum: 0,
             description: "Número de pasillo",
             example: 1,
           },
@@ -2708,11 +2743,11 @@ Soporta paginación con ?take= y ?skip=`,
             description: "Letra o código de sección",
             example: "A",
           },
-          nivel: {
+          niveles: {
             type: "integer",
             minimum: 1,
-            description: "Nivel o altura del estante",
-            example: 2,
+            description: "Cantidad de niveles a crear para este estante",
+            example: 3,
           },
           ubicacionId: {
             type: "integer",
@@ -2725,7 +2760,7 @@ Soporta paginación con ?take= y ?skip=`,
 
       Estante: {
         type: "object",
-        description: "Estante con su ubicación asociada",
+        description: "Estante con sus niveles y ubicación asociada",
         properties: {
           id: {
             type: "integer",
@@ -2736,9 +2771,6 @@ Soporta paginación con ?take= y ?skip=`,
           Seccion: {
             type: "string",
             description: "Campo con PascalCase según Prisma",
-          },
-          nivel: {
-            type: "integer",
           },
           ubicacionId: {
             type: "integer",
@@ -2755,6 +2787,25 @@ Soporta paginación con ?take= y ?skip=`,
                 $ref: "#/components/schemas/Ubicacion",
               },
             ],
+          },
+          niveles: {
+            type: "array",
+            description: "Niveles del estante (relación con tabla niveles)",
+            items: {
+              type: "object",
+              properties: {
+                id: {
+                  type: "integer",
+                },
+                estantesId: {
+                  type: "integer",
+                },
+                niveles: {
+                  type: "integer",
+                  description: "Número del nivel (1, 2, 3, etc.)",
+                },
+              },
+            },
           },
         },
       },
