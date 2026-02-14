@@ -83,8 +83,8 @@ model categorias {
 model subcategorias {
   id               Int      @id @default(autoincrement())
   nombre           String
-  ganancias_ventas Float
-  ganancias_stock  Float
+  ganancias_ventas Float @default(0)
+  valor_stock      Float  @default(0)
   createdAt        DateTime @default(now())
 
   categoriaId Int
