@@ -181,6 +181,17 @@ const createProducto = async (req, res) => {
       },
     });
 
+    const subcategoria = await prisma.subcategorias.findUnique({
+      where: { id: subcategoriaIdInt },
+    });
+
+    await prisma.subcategorias.update({
+      where: { id: subcategoriaIdInt },
+      data: {
+        valor_stock: subcategoria.valor_stock + cantidadInt * costoCompraFloat,
+      },
+    });
+
     // Registrar en auditoría
     await prisma.auditoria.create({
       data: {
@@ -353,6 +364,24 @@ const crearVariante = async (req, res) => {
         costo_compra: costoCompraFloat,
         foto: fotoUrl,
         valor_stock: (cantidadInt * costoCompraFloat).toFixed(2),
+      },
+    });
+
+    const subcategoriaId = await prisma.productos.findUnique({
+      where: { id: productoIdInt },
+      select: {
+        subcategoriaId: true,
+      }
+    });
+
+        const subcategoria = await prisma.subcategorias.findUnique({
+          where: { id: subcategoriaId.subcategoriaId },
+        });
+
+    await prisma.subcategorias.update({
+      where: { id: subcategoriaId.subcategoriaId },
+      data: {
+        valor_stock: subcategoria.valor_stock + cantidadInt * costoCompraFloat,
       },
     });
 
