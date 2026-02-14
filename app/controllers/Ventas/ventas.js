@@ -196,7 +196,6 @@ const createVenta = async (req, res) => {
     res.status(201).json({
       ...nuevaVenta,
       ganancia_total_venta: gananciaTotalVenta,
-      ganancia_neta: gananciaNeta,
       costos_extras_aplicados: costosExtrasValidos,
     });
   } catch (error) {
