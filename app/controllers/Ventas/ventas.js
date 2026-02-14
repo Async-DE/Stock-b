@@ -140,15 +140,15 @@ const createVenta = async (req, res) => {
           cantidad: variante.cantidad - cantidadInt,
           // Actualizar ganancias según tipo de venta
           ...(tipo_venta === "publico" && {
-            ganacia_publico: variante.ganacia_publico + gananciaTotalVenta,
+            ganacia_publico: variante.ganacia_publico + totalVentaFloat,
           }),
           ...(tipo_venta === "contratista" && {
-            ganacia_contratista:
-              variante.ganacia_contratista + gananciaTotalVenta,
+            ganacia_contratista: variante.ganacia_contratista + totalVentaFloat,
           }),
           // Actualizar ganancias totales del stock
-          ganancias_stock: variante.ganancias_stock + gananciaTotalVenta,
-          valor_stock: parseFloat(variante.valor_stock) - parseFloat(gananciaTotalVenta),
+          ganancias_stock: variante.ganancias_stock + totalVentaFloat,
+          valor_stock:
+            parseFloat(variante.valor_stock) - parseFloat(totalVentaFloat),
         },
       });
 
@@ -163,21 +163,20 @@ const createVenta = async (req, res) => {
         });
       }
 
-          await prisma.$transaction(async (tx) => {
-            const subcategoriaActualizada = await tx.subcategorias.update({
-              where: { id: subcategoriaId.subcategoriaId },
-              data: {
-                ganancias_ventas:
-                  subcategoria.ganancias_ventas + totalVentaFloat,
-                valor_stock:
-                  parseFloat(subcategoria.valor_stock) -
-                  parseFloat(gananciaTotalVenta),
-              },
-            });
-            return {
-              ganancias_ventas: subcategoriaActualizada.ganancias_ventas,
-            };
-          });
+      await prisma.$transaction(async (tx) => {
+        const subcategoriaActualizada = await tx.subcategorias.update({
+          where: { id: subcategoriaId.subcategoriaId },
+          data: {
+            ganancias_ventas: subcategoria.ganancias_ventas + totalVentaFloat,
+            valor_stock:
+              parseFloat(subcategoria.valor_stock) -
+              parseFloat(totalVentaFloat),
+          },
+        });
+        return {
+          ganancias_ventas: subcategoriaActualizada.ganancias_ventas,
+        };
+      });
 
       // Registrar en auditoría
       await tx.auditoria.create({
@@ -195,7 +194,7 @@ const createVenta = async (req, res) => {
 
     res.status(201).json({
       ...nuevaVenta,
-      ganancia_total_venta: gananciaTotalVenta,
+      ganancia_total_venta: totalVentaFloat,
       costos_extras_aplicados: costosExtrasValidos,
     });
   } catch (error) {
@@ -217,6 +216,14 @@ const getVentasByDateRange = async (req, res) => {
         },
       },
       include: {
+        variante: {
+          select: {
+            nombre: true,
+            codigo: true,
+            color: true,
+            medidas: true,
+          },
+        },
         costosExtras: true,
       },
     });
@@ -239,6 +246,14 @@ const searchVentas = async (req, res) => {
         ],
       },
       include: {
+        variante: {
+          select: {
+            nombre: true,
+            codigo: true,
+            color: true,
+            medidas: true,
+          },
+        },
         costosExtras: true,
       },
     });
