@@ -17,8 +17,6 @@ const createSubCategoria = async (req, res) => {
       data: {
         nombre,
         categoriaId: parseInt(categoriaId),
-        ganancias_ventas: 0,
-        ganancias_stock: 0
       },
     });
 
