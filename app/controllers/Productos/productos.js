@@ -99,14 +99,14 @@ const createProducto = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   // Validar foto (archivo o URL)
   if (!req.file && !foto) {
     return res
       .status(400)
-      .json({ error: "La foto es obligatoria (archivo o URL de texto)" });
+      .json({ message: "La foto es obligatoria (archivo o URL de texto)", error: "La foto es obligatoria (archivo o URL de texto)" });
   }
 
   // Parsear valores numéricos
@@ -124,21 +124,21 @@ const createProducto = async (req, res) => {
     where: { codigo },
   });
   if (productoExistente) {
-    return res.status(400).json({ error: "La variante ya existe" });
+    return res.status(400).json({ message: "La variante ya existe", error: "La variante ya existe" });
   }
 
   const subcategoriaExistente = await prisma.subcategorias.findFirst({
     where: { id: subcategoriaIdInt },
   });
   if (!subcategoriaExistente) {
-    return res.status(400).json({ error: "La subcategoría no existe" });
+    return res.status(400).json({ message: "La subcategoría no existe", error: "La subcategoría no existe" });
   }
 
   const nivelExistente = await prisma.niveles.findFirst({
     where: { id: nivelesIdInt },
   });
   if (!nivelExistente) {
-    return res.status(400).json({ error: "El nivel no existe" });
+    return res.status(400).json({ message: "El nivel no existe", error: "El nivel no existe" });
   }
 
   try {
@@ -205,10 +205,11 @@ const createProducto = async (req, res) => {
       },
     });
 
-    res.status(200).json("Producto y variante básica creados con éxito");
+    return res.status(200).json({ message: "Producto y variante básica creados con éxito", data: varianteCreada });
   } catch (error) {
     console.error("Error al crear el producto:", error);
-    res.status(500).json({
+    return res.status(500).json({
+      message: "Error al crear el producto",
       error: "Error al crear el producto",
       details: error.message,
       code: error.code,
@@ -310,14 +311,14 @@ const crearVariante = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   // Validar foto (archivo o URL)
   if (!req.file && !foto) {
     return res
       .status(400)
-      .json({ error: "La foto es obligatoria (archivo o URL de texto)" });
+      .json({ message: "La foto es obligatoria (archivo o URL de texto)", error: "La foto es obligatoria (archivo o URL de texto)" });
   }
 
   //Validar que el codigo no exista en la base de datos
@@ -325,7 +326,7 @@ const crearVariante = async (req, res) => {
     where: { codigo },
   });
   if (varianteExistente) {
-    return res.status(400).json({ error: "La variante ya existe" });
+    return res.status(400).json({ message: "La variante ya existe", error: "La variante ya existe" });
   }
 
   try {
@@ -400,9 +401,9 @@ const crearVariante = async (req, res) => {
       },
     });
 
-    res.status(201).json("Variante creada con éxito");
+    return res.status(201).json({ message: "Variante creada con éxito", data: nuevaVariante });
   } catch (error) {
-    res.status(500).json({ error: "Error al crear la variante" });
+    return res.status(500).json({ message: "Error al crear la variante", error: "Error al crear la variante" });
   }
 };
 
@@ -494,7 +495,7 @@ const updateVariante = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -532,9 +533,10 @@ const updateVariante = async (req, res) => {
       },
     });
 
-    res.status(200).json("Variante actualizada con éxito");
+    return res.status(200).json({ message: "Variante actualizada con éxito", data: varianteActualizada });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
+      message: "Error al actualizar la variante",
       error: "Error al actualizar la variante",
       details: error.message,
     });
@@ -546,7 +548,7 @@ const getProductosBySubcategoria = async (req, res) => {
 
   // Validar que subcategoriaId sea un número
   if (!subcategoriaId || isNaN(subcategoriaId)) {
-    return res.status(400).json({ error: "El ID de subcategoría es inválido" });
+    return res.status(400).json({ message: "El ID de subcategoría es inválido", error: "El ID de subcategoría es inválido" });
   }
 
   try {
@@ -574,12 +576,12 @@ const getProductosBySubcategoria = async (req, res) => {
     if (productos.length === 0) {
       return res
         .status(404)
-        .json({ error: "No se Encontraron productos para esta categoría" });
+        .json({ message: "No se encontraron productos para esta categoría", error: "No se encontraron productos para esta categoría" });
     }
-    res.status(200).json(productos);
+    return res.status(200).json({ message: "Productos obtenidos exitosamente", data: productos });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al obtener productos por categoría" });
+    return res.status(500).json({ message: "Error al obtener productos por categoría", error: "Error al obtener productos por categoría" });
   }
 };
 
@@ -610,13 +612,13 @@ const getProductoById = async (req, res) => {
     });
 
     if (!producto) {
-      return res.status(404).json({ error: "Producto no encontrado" });
+      return res.status(404).json({ message: "Producto no encontrado", error: "Producto no encontrado" });
     }
 
-    res.status(200).json(producto);
+    return res.status(200).json({ message: "Producto obtenido exitosamente", data: producto });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al obtener el producto" });
+    return res.status(500).json({ message: "Error al obtener el producto", error: "Error al obtener el producto" });
   }
 };
 
@@ -680,12 +682,12 @@ const getProductosBySearch = async (req, res) => {
       },
     });
 
-    res.status(200).json(productos);
+    return res.status(200).json({ message: "Productos encontrados exitosamente", data: productos });
   } catch (error) {
     console.error("Error al buscar productos:", error);
-    res
+    return res
       .status(500)
-      .json({ error: "Error al buscar productos", details: error.message });
+      .json({ message: "Error al buscar productos", error: "Error al buscar productos", details: error.message });
   }
 };
 

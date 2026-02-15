@@ -44,9 +44,10 @@ const getAuditoriaGeneral = async (_req, res) => {
       include: includeAuditoriaRelacion,
     });
 
-    res.status(200).json(limpiarAuditorias(auditorias));
+    return res.status(200).json({ message: "Auditoría obtenida exitosamente", data: limpiarAuditorias(auditorias) });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
+      message: "Error al obtener auditoria",
       error: "Error al obtener auditoria",
       details: error.message,
     });
@@ -58,7 +59,7 @@ const getAuditoriaPorUsuario = async (req, res) => {
   const usuarioId = parseInt(id, 10);
 
   if (Number.isNaN(usuarioId)) {
-    return res.status(400).json({ error: "El ID de usuario es invalido" });
+    return res.status(400).json({ message: "El ID de usuario es inválido", error: "El ID de usuario es inválido" });
   }
 
   try {
@@ -71,9 +72,10 @@ const getAuditoriaPorUsuario = async (req, res) => {
       include: includeAuditoriaRelacion,
     });
 
-    res.status(200).json(limpiarAuditorias(auditorias));
+    return res.status(200).json({ message: "Auditoría obtenida exitosamente", data: limpiarAuditorias(auditorias) });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
+      message: "Error al obtener auditoria del usuario",
       error: "Error al obtener auditoria del usuario",
       details: error.message,
     });
@@ -97,13 +99,14 @@ const getAuditoriaPorEntidad = async (req, res) => {
 
   if (!entidadKey) {
     return res.status(400).json({
-      error: "Entidad invalida",
+      message: "Entidad inválida",
+      error: "Entidad inválida",
       entidadesValidas: Object.keys(entidadMap),
     });
   }
 
   if (Number.isNaN(entidadId)) {
-    return res.status(400).json({ error: "El ID de entidad es invalido" });
+    return res.status(400).json({ message: "El ID de entidad es inválido", error: "El ID de entidad es inválido" });
   }
 
   try {
@@ -116,9 +119,10 @@ const getAuditoriaPorEntidad = async (req, res) => {
       include: includeAuditoriaRelacion,
     });
 
-    res.status(200).json(limpiarAuditorias(auditorias));
+    return res.status(200).json({ message: "Auditoría obtenida exitosamente", data: limpiarAuditorias(auditorias) });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
+      message: "Error al obtener auditoria de la entidad",
       error: "Error al obtener auditoria de la entidad",
       details: error.message,
     });

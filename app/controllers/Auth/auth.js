@@ -24,7 +24,7 @@ const login = async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -40,6 +40,7 @@ const login = async (req, res) => {
 
     if (!usuario) {
       return res.status(401).json({ 
+        message: 'Usuario o contraseña incorrectos',
         error: 'Usuario o contraseña incorrectos' 
       });
     }
@@ -47,6 +48,7 @@ const login = async (req, res) => {
     // Verificar que el usuario esté activo
     if (!usuario.estado) {
       return res.status(403).json({ 
+        message: 'Usuario inactivo',
         error: 'Usuario inactivo' 
       });
     }
@@ -55,6 +57,7 @@ const login = async (req, res) => {
     const passwordValida = await bcrypt.compare(password, usuario.password);
     if (!passwordValida) {
       return res.status(401).json({ 
+        message: 'Usuario o contraseña incorrectos',
         error: 'Usuario o contraseña incorrectos' 
       });
     }
@@ -88,15 +91,18 @@ const login = async (req, res) => {
     // Responder sin incluir password
     const { password: _, ...usuarioSeguro } = usuario;
 
-    res.status(200).json({
-      mensaje: 'Login exitoso',
-      token,
-      usuario: usuarioSeguro
+    return res.status(200).json({
+      message: 'Login exitoso',
+      data: {
+        token,
+        usuario: usuarioSeguro
+      }
     });
 
   } catch (error) {
     console.error('Error en login:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
+      message: 'Error al iniciar sesión',
       error: 'Error al iniciar sesión' 
     });
   }
@@ -124,13 +130,14 @@ const logout = async (req, res) => {
       }
     });
 
-    res.status(200).json({ 
-      mensaje: 'Logout exitoso' 
+    return res.status(200).json({ 
+      message: 'Logout exitoso' 
     });
 
   } catch (error) {
     console.error('Error en logout:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
+      message: 'Error al cerrar sesión',
       error: 'Error al cerrar sesión' 
     });
   }
@@ -161,13 +168,14 @@ const revocarTodasLasSesiones = async (req, res) => {
       }
     });
 
-    res.status(200).json({ 
-      mensaje: 'Todas las sesiones han sido revocadas' 
+    return res.status(200).json({ 
+      message: 'Todas las sesiones han sido revocadas' 
     });
 
   } catch (error) {
     console.error('Error al revocar sesiones:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
+      message: 'Error al revocar sesiones',
       error: 'Error al revocar sesiones' 
     });
   }

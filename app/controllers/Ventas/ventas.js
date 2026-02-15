@@ -51,7 +51,7 @@ const createVenta = async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -65,14 +65,14 @@ const createVenta = async (req, res) => {
     });
 
     if (!variante) {
-      return res.status(404).json({ message: "Variante no encontrada" });
+      return res.status(404).json({ message: "Variante no encontrada", error: "Variante no encontrada" });
     }
 
     // Validar que hay cantidad suficiente
     if (variante.cantidad < cantidadInt) {
       return res
         .status(400)
-        .json({ message: "Cantidad insuficiente en stock" });
+        .json({ message: "Cantidad insuficiente en stock", error: "Cantidad insuficiente en stock" });
     }
 
     const subcategoriaId = await prisma.productos.findUnique({
@@ -192,16 +192,19 @@ const createVenta = async (req, res) => {
       return venta;
     });
 
-    res.status(201).json({
-      ...nuevaVenta,
-      ganancia_total_venta: totalVentaFloat,
-      costos_extras_aplicados: costosExtrasValidos,
+    return res.status(201).json({
+      message: "Venta creada exitosamente",
+      data: {
+        ...nuevaVenta,
+        ganancia_total_venta: totalVentaFloat,
+        costos_extras_aplicados: costosExtrasValidos,
+      }
     });
   } catch (error) {
     console.error("Error al crear venta:", error);
-    res
+    return res
       .status(500)
-      .json({ error: "Error al crear la venta", details: error.message });
+      .json({ message: "Error al crear la venta", error: "Error al crear la venta", details: error.message });
   }
 };
 
@@ -227,11 +230,11 @@ const getVentasByDateRange = async (req, res) => {
         costosExtras: true,
       },
     });
-    res.status(200).json(ventas);
+    return res.status(200).json({ message: "Ventas obtenidas exitosamente", data: ventas });
   } catch (error) {
-    res
+    return res
       .status(500)
-      .json({ error: "Error al obtener las ventas", details: error.message });
+      .json({ message: "Error al obtener las ventas", error: "Error al obtener las ventas", details: error.message });
   }
 };
 
@@ -257,9 +260,9 @@ const searchVentas = async (req, res) => {
         costosExtras: true,
       },
     });
-    res.status(200).json(ventas);
+    return res.status(200).json({ message: "Ventas encontradas exitosamente", data: ventas });
   } catch (error) {
-    res.status(500).json({ error: "Error al buscar las ventas" });
+    return res.status(500).json({ message: "Error al buscar las ventas", error: "Error al buscar las ventas" });
   }
 };
 

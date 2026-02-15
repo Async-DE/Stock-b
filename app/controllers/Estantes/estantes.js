@@ -24,7 +24,7 @@ const createEstante = async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -37,7 +37,7 @@ const createEstante = async (req, res) => {
     });
 
     if (!existeUbicacion) {
-      return res.status(404).json({ error: "La ubicación no existe" });
+      return res.status(404).json({ message: "La ubicación no existe", error: "La ubicación no existe" });
     }
 
     // Usar transacción para garantizar atomicidad
@@ -80,10 +80,10 @@ const createEstante = async (req, res) => {
       },
     });
 
-    res.status(201).json(estanteCompleto);
+    return res.status(201).json({ message: "Estante creado exitosamente", data: estanteCompleto });
   } catch (error) {
     console.error("Error al crear el estante:", error);
-    res.status(500).json({ error: "Error al crear el estante" });
+    return res.status(500).json({ message: "Error al crear el estante", error: "Error al crear el estante" });
   }
 };
 
@@ -95,9 +95,9 @@ const getEstantes = async (req, res) => {
       },
     });
 
-    res.status(200).json(estantes);
+    return res.status(200).json({ message: "Estantes obtenidos exitosamente", data: estantes });
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener estantes" });
+    return res.status(500).json({ message: "Error al obtener estantes", error: "Error al obtener estantes" });
   }
 };
 
@@ -113,12 +113,12 @@ const getEstanteById = async (req, res) => {
     });
 
     if (!estante) {
-      return res.status(404).json({ error: "Estante no encontrado" });
+      return res.status(404).json({ message: "Estante no encontrado", error: "Estante no encontrado" });
     }
 
-    res.status(200).json(estante);
+    return res.status(200).json({ message: "Estante obtenido exitosamente", data: estante });
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener el estante" });
+    return res.status(500).json({ message: "Error al obtener el estante", error: "Error al obtener el estante" });
   }
 };
 

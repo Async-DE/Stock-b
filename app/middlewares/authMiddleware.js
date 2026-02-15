@@ -12,6 +12,7 @@ export const authMiddleware = async (req, res, next) => {
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ 
+        message: 'Token no proporcionado o formato inválido',
         error: 'Token no proporcionado o formato inválido' 
       });
     }
@@ -24,6 +25,7 @@ export const authMiddleware = async (req, res, next) => {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
       return res.status(401).json({ 
+        message: 'Token inválido o expirado',
         error: 'Token inválido o expirado' 
       });
     }
@@ -36,12 +38,14 @@ export const authMiddleware = async (req, res, next) => {
 
     if (!sesion) {
       return res.status(401).json({ 
+        message: 'Sesión no encontrada',
         error: 'Sesión no encontrada' 
       });
     }
 
     if (sesion.revocado) {
       return res.status(401).json({ 
+        message: 'Sesión revocada',
         error: 'Sesión revocada' 
       });
     }
@@ -49,6 +53,7 @@ export const authMiddleware = async (req, res, next) => {
     // Verificar que el usuario exista y esté activo
     if (!sesion.usuario || !sesion.usuario.estado) {
       return res.status(401).json({ 
+        message: 'Usuario inactivo o no encontrado',
         error: 'Usuario inactivo o no encontrado' 
       });
     }
@@ -64,7 +69,8 @@ export const authMiddleware = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Error en middleware de autenticación:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
+      message: 'Error al validar autenticación',
       error: 'Error al validar autenticación' 
     });
   }
