@@ -369,7 +369,7 @@ const crearVariante = async (req, res) => {
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
         foto: fotoUrl,
-        valor_stock: valor_stock,
+        valor_stock: parseFloat(valor_stock),
       },
     });
 
@@ -403,6 +403,7 @@ const crearVariante = async (req, res) => {
 
     return res.status(201).json({ message: "Variante creada con éxito", data: nuevaVariante });
   } catch (error) {
+        console.log("Error al crear la variante:", error);
     return res.status(500).json({ message: "Error al crear la variante", error: "Error al crear la variante" });
   }
 };
