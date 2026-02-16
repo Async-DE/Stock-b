@@ -9,7 +9,7 @@ const createSubCategoria = async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -17,8 +17,6 @@ const createSubCategoria = async (req, res) => {
       data: {
         nombre,
         categoriaId: parseInt(categoriaId),
-        ganancias_ventas: 0,
-        ganancias_stock: 0
       },
     });
 
@@ -31,10 +29,10 @@ const createSubCategoria = async (req, res) => {
       }
     });
 
-    res.status(201).json(nuevaSubCategoria);
+    return res.status(201).json({ message: "Subcategoría creada exitosamente", data: nuevaSubCategoria });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al crear subcategoría" });
+    return res.status(500).json({ message: "Error al crear subcategoría", error: "Error al crear subcategoría" });
   }
 };
 
@@ -46,7 +44,7 @@ const updateSubCategoria = async (req, res) => {
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
     }
 
     try {
@@ -64,10 +62,10 @@ const updateSubCategoria = async (req, res) => {
             }
         });
 
-        res.status(200).json(subcategoria);
+        return res.status(200).json({ message: "Subcategoría actualizada exitosamente", data: subcategoria });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Error al actualizar subcategoría" });
+        return res.status(500).json({ message: "Error al actualizar subcategoría", error: "Error al actualizar subcategoría" });
     }
 }
 
