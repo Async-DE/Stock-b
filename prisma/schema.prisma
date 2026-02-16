@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Rol {
+  owner
+  editor
+  seller
+}
+
 model usuario {
   id Int @id @default(autoincrement())
 
@@ -15,6 +21,7 @@ model usuario {
   email_phone String  @unique
   password    String // hash bcrypt
   estado      Boolean @default(true)
+  permisos    Rol     @default(seller)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,8 +90,8 @@ model categorias {
 model subcategorias {
   id               Int      @id @default(autoincrement())
   nombre           String
-  ganancias_ventas Float @default(0)
-  valor_stock      Float  @default(0)
+  ganancias_ventas Float    @default(0)
+  valor_stock      Float    @default(0)
   createdAt        DateTime @default(now())
 
   categoriaId Int
@@ -95,7 +102,7 @@ model subcategorias {
 }
 
 model productos {
-  id             Int  @id @default(autoincrement())
+  id             Int @id @default(autoincrement())
   subcategoriaId Int
 
   subcategoria subcategorias @relation(fields: [subcategoriaId], references: [id])
