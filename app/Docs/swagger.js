@@ -7,23 +7,27 @@ const swaggerDefinition = {
     title: "Stock Manager API",
     version: "1.0.0",
     description: `
+🚀 **VERSIÓN 1.0.0 - ENTREGADA EN PRODUCCIÓN**
+
 API backend para control de inventarios, productos, usuarios y ventas.
+Versión completamente terminada, entregada y aprobada por el cliente.
 
 - Todas las peticiones y respuestas son en JSON
 - Todas las acciones generan auditoría
 - Pensada para consumo por aplicación móvil (React Native)
 - **Base URL**: \`/stock\`
+- **Estado**: ✅ PRODUCCIÓN - 18/02/2026
     `,
   },
 
   servers: [
     {
       url: "http://localhost:3000/stock",
-      description: "Servidor local",
+      description: "Servidor local (desarrollo)",
     },
     {
       url: "https://stock-b-production.up.railway.app/stock",
-      description: "Servidor de pre-producción",
+      description: "Servidor de producción ✅ Entregado",
     },
   ],
 
@@ -240,6 +244,11 @@ API backend para control de inventarios, productos, usuarios y ventas.
         tags: ["Usuarios"],
         summary: "Crear usuario",
         description: "Crea un nuevo usuario activo en el sistema",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -289,6 +298,11 @@ API backend para control de inventarios, productos, usuarios y ventas.
         tags: ["Usuarios"],
         summary: "Actualizar estado del usuario",
         description: "Activa o desactiva un usuario",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         parameters: [
           {
             name: "id",
@@ -345,6 +359,11 @@ API backend para control de inventarios, productos, usuarios y ventas.
         summary: "Obtener usuarios",
         description:
           "Obtiene la lista de usuarios, opcionalmente filtrados por estado",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         parameters: [
           {
             name: "estado",
@@ -723,6 +742,11 @@ Soporta paginación con ?take= y ?skip=`,
         summary: "Crear producto con variante base",
         description:
           "Crea un producto y su variante inicial en una sola operación. La foto puede enviarse como URL en el body o como archivo multipart/form-data.",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -781,6 +805,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Productos"],
         summary: "Obtener producto por ID",
         description: "Obtiene un producto con todas sus variantes",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         parameters: [
           {
             name: "id",
@@ -817,6 +846,11 @@ Soporta paginación con ?take= y ?skip=`,
         summary: "Buscar productos",
         description:
           "Busca productos por categoría, nombre de variante, color o código",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -862,6 +896,11 @@ Soporta paginación con ?take= y ?skip=`,
         summary: "Productos por subcategoría",
         description:
           "Obtiene todos los productos de una subcategoría específica",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         parameters: [
           {
             name: "subcategoriaId",
@@ -904,6 +943,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Productos"],
         summary: "Crear variante adicional",
         description: "Crea una nueva variante para un producto existente. La foto puede enviarse como URL o archivo multipart/form-data.",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -948,6 +992,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Productos"],
         summary: "Actualizar variante",
         description: "Actualiza los datos de una variante existente. La foto puede enviarse como URL o archivo multipart/form-data.",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         parameters: [
           {
             name: "varianteId",
@@ -1005,6 +1054,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Ubicaciones"],
         summary: "Crear ubicación",
         description: "Crea una nueva ubicación física",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -1048,6 +1102,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Ubicaciones"],
         summary: "Actualizar ubicación",
         description: "Actualiza los datos de una ubicación existente",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         parameters: [
           {
             name: "id",
@@ -1103,6 +1162,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Ubicaciones"],
         summary: "Obtener ubicaciones",
         description: "Obtiene todas las ubicaciones registradas",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         responses: {
           200: {
             description: "Lista de ubicaciones",
@@ -1133,6 +1197,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Ventas"],
         summary: "Registrar venta",
         description: "Registra una nueva venta de una variante",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -1179,6 +1248,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Ventas"],
         summary: "Ventas por rango de fechas",
         description: "Obtiene ventas dentro de un rango de fechas específico",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -1230,6 +1304,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Ventas"],
         summary: "Buscar ventas",
         description: "Busca ventas por nombre o contacto del cliente",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -1623,6 +1702,11 @@ Soporta paginación con ?take= y ?skip=`,
         summary: "Crear estante",
         description:
           "Crea un nuevo estante asociado opcionalmente a una ubicación",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -1633,7 +1717,7 @@ Soporta paginación con ?take= y ?skip=`,
               example: {
                 pasillo: 1,
                 seccion: "A",
-                nivel: 2,
+                niveles: 3,
                 ubicacionId: 3,
               },
             },
@@ -1675,6 +1759,11 @@ Soporta paginación con ?take= y ?skip=`,
         tags: ["Estantes"],
         summary: "Obtener estantes",
         description: "Obtiene la lista de estantes con su ubicación asociada",
+        security: [
+          {
+            bearerAuth: [],
+          },
+        ],
         responses: {
           200: {
             description: "Lista de estantes",
