@@ -83,8 +83,8 @@ model categorias {
 model subcategorias {
   id               Int      @id @default(autoincrement())
   nombre           String
-  ganancias_ventas Float
-  ganancias_stock  Float
+  ganancias_ventas Float @default(0)
+  valor_stock      Float  @default(0)
   createdAt        DateTime @default(now())
 
   categoriaId Int
@@ -96,9 +96,9 @@ model subcategorias {
 
 model productos {
   id             Int  @id @default(autoincrement())
-  subcategoriaId Int?
+  subcategoriaId Int
 
-  subcategoria subcategorias? @relation(fields: [subcategoriaId], references: [id])
+  subcategoria subcategorias @relation(fields: [subcategoriaId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -127,8 +127,8 @@ model variantes {
 
   ganacia_publico     Float @default(0)
   ganacia_contratista Float @default(0)
-  
   ganancias_stock     Float @default(0)
+  valor_stock         Float @default(0) // cantidad * costo_compra
 
   producto productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
   niveles  niveles   @relation(fields: [nivelesId], references: [id], onDelete: Cascade)
@@ -138,13 +138,13 @@ model variantes {
 }
 
 model ventas {
-  id                 Int      @id @default(autoincrement())
-  variante_id        Int
-  cantidad           Int
-  total_venta        Float
-  fecha_venta        DateTime @default(now())
-  nombre_cliente     String
-  contacto_cliente   String
+  id               Int      @id @default(autoincrement())
+  variante_id      Int
+  cantidad         Int
+  total_venta      Float
+  fecha_venta      DateTime @default(now())
+  nombre_cliente   String
+  contacto_cliente String
 
   // Timestamp de la información del producto
   precio_publico     Float

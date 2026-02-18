@@ -29,7 +29,7 @@ const createUsuario = async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -55,11 +55,11 @@ const createUsuario = async (req, res) => {
 
     const { password: _, ...usuarioSeguro } = nuevoUsuario;
 
-    res.status(201).json(usuarioSeguro);
+    return res.status(201).json({ message: "Usuario creado exitosamente", data: usuarioSeguro });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al crear usuario" });
+    return res.status(500).json({ message: "Error al crear usuario", error: "Error al crear usuario" });
   }
 };
 
@@ -73,7 +73,7 @@ const updateEstadoUsuario = async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -95,10 +95,10 @@ const updateEstadoUsuario = async (req, res) => {
 
     const { password: _, ...usuarioSeguro } = usuarioActualizado;
 
-    res.status(200).json(usuarioSeguro);
+    return res.status(200).json({ message: "Estado de usuario actualizado exitosamente", data: usuarioSeguro });
   } catch (error) {
     console.error("Error al actualizar estado:", error);
-    res.status(500).json({ error: "Error al actualizar estado del usuario", details: error.message });
+    return res.status(500).json({ message: "Error al actualizar estado del usuario", error: "Error al actualizar estado del usuario", details: error.message });
   }
 };
 
@@ -124,10 +124,10 @@ const getUsuarios = async (req, res) => {
       },
     });
 
-    res.status(200).json(usuarios);
+    return res.status(200).json({ message: "Usuarios obtenidos exitosamente", data: usuarios });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error al obtener usuarios" });
+    return res.status(500).json({ message: "Error al obtener usuarios", error: "Error al obtener usuarios" });
   }
 };
 

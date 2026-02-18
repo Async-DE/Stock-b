@@ -36,7 +36,7 @@ const createUbicacion = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -59,9 +59,9 @@ const createUbicacion = async (req, res) => {
       },
     });
 
-    res.status(201).json(ubicacion);
+    return res.status(201).json({ message: "Ubicación creada exitosamente", data: ubicacion });
   } catch (error) {
-    res.status(500).json({ error: "Error al crear la ubicación" });
+    return res.status(500).json({ message: "Error al crear la ubicación", error: "Error al crear la ubicación" });
   }
 };
 
@@ -100,7 +100,7 @@ const updateUbicacion = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -108,7 +108,7 @@ const updateUbicacion = async (req, res) => {
       where: { id: parseInt(id) },
     });
     if (!ubicacionExistente) {
-      return res.status(404).json({ error: "Ubicación no encontrada" });
+      return res.status(404).json({ message: "Ubicación no encontrada", error: "Ubicación no encontrada" });
     }
     const ubicacionActualizada = await prisma.ubicacion.update({
       where: { id: parseInt(id) },
@@ -130,9 +130,9 @@ const updateUbicacion = async (req, res) => {
       },
     });
 
-    res.status(200).json(ubicacionActualizada);
+    return res.status(200).json({ message: "Ubicación actualizada exitosamente", data: ubicacionActualizada });
   } catch (error) {
-    res.status(500).json({ error: "Error al actualizar la ubicación" });
+    return res.status(500).json({ message: "Error al actualizar la ubicación", error: "Error al actualizar la ubicación" });
   }
 };
 
@@ -147,9 +147,9 @@ const getUbicaciones = async (req, res) => {
         },
       },
     });
-    res.status(200).json(ubicaciones);
+    return res.status(200).json({ message: "Ubicaciones obtenidas exitosamente", data: ubicaciones });
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener las ubicaciones" });
+    return res.status(500).json({ message: "Error al obtener las ubicaciones", error: "Error al obtener las ubicaciones" });
   }
 };
 
