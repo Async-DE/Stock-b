@@ -6,7 +6,7 @@
 
 ## 📋 Descripción
 
-Script automatizado PowerShell que ejecuta un test completo de **todos los 29 endpoints** de la API Stock Manager.
+Script automatizado PowerShell que ejecuta un test completo de **todos los 30 endpoints** de la API Stock Manager v1.0.0.
 
 ### Características
 - ✅ Prueba todos los módulos del backend
@@ -52,7 +52,7 @@ Script automatizado PowerShell que ejecuta un test completo de **todos los 29 en
 
 ## 📊 Estructura del Test
 
-### Total: 29 Endpoints
+### Total: 30 Endpoints
 
 | Módulo | Endpoints | Status |
 |--------|-----------|--------|
@@ -66,7 +66,8 @@ Script automatizado PowerShell que ejecuta un test completo de **todos los 29 en
 | **Variantes** | 2 | ✅ 100% |
 | **Ventas** | 3 | ✅ 100% |
 | **Auditoría** | 3 | ✅ 100% |
-| **TOTAL** | **29** | **✅ 29/29 (100%)** |
+| **Imágenes** | 1 | ✅ 100% |
+| **TOTAL** | **30** | **✅ 30/30 (100%)** |
 
 ---
 
@@ -120,6 +121,9 @@ Script automatizado PowerShell que ejecuta un test completo de **todos los 29 en
 27. `GET /auditoria/general` - Auditoría general del sistema
 28. `GET /auditoria/usuario/:id` - Auditoría por usuario
 29. `GET /auditoria/entidad/:entidad/:id` - Auditoría por entidad
+
+### Imágenes (1)
+30. `GET /imagenes/:carpeta/:archivo` - Descargar imagen desde S3
 
 ---
 
@@ -203,5 +207,4 @@ where: { subcategoriaId: parseInt(subcategoriaId) }
 
 ---
 
-**Última Actualización:** 11/02/2026
-
+**Última Actualización:** 18/02/2026 - API v1.0.0
