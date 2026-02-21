@@ -5,7 +5,7 @@ import { uploadFile, getPublicUrl } from "../../bucket_service/bucket.js";
 const createProducto = async (req, res) => {
   const {
     subcategoriaId,
-    nivelesId,
+    ubi_alma_id, // opcional
     nombre,
     codigo,
     color,
@@ -25,11 +25,6 @@ const createProducto = async (req, res) => {
     .withMessage(
       "El ID de subcategoría es obligatorio y debe ser un número entero",
     )
-    .run(req);
-  await check("nivelesId")
-    .notEmpty()
-    .isInt()
-    .withMessage("El nivelesId es obligatorio y debe ser un número entero")
     .run(req);
 
   // Validar los datos de entrada variante
@@ -99,19 +94,52 @@ const createProducto = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
-  }
-
-  // Validar foto (archivo o URL)
-  if (!req.file && !foto) {
     return res
       .status(400)
-      .json({ message: "La foto es obligatoria (archivo o URL de texto)", error: "La foto es obligatoria (archivo o URL de texto)" });
+      .json({ message: "Errores de validación", errors: errors.array() });
+  }
+
+  // Validar fotos (archivos o URLs) - máximo 5
+  const allowedFormats = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const files = req.files || [];
+  const fotoUrls = Array.isArray(foto) ? foto : foto ? [foto] : [];
+  const totalFotos = files.length + fotoUrls.length;
+
+  if (totalFotos === 0) {
+    return res.status(400).json({
+      message: "Al menos una foto es obligatoria (archivo o URL de texto)",
+      error: "Al menos una foto es obligatoria (archivo o URL de texto)",
+    });
+  }
+
+  if (totalFotos > 5) {
+    return res.status(400).json({
+      message: "Máximo 5 fotos permitidas",
+      error: "Máximo 5 fotos permitidas",
+    });
+  }
+
+  // Validar formatos de archivo
+  for (const file of files) {
+    if (!allowedFormats.includes(file.mimetype)) {
+      return res.status(400).json({
+        message: `Formato de archivo no permitido: ${file.originalname}. Solo se permiten JPEG, JPG, PNG y WEBP`,
+        error: "Formato de archivo no permitido",
+      });
+    }
+  }
+
+  // Validar URLs (si son strings)
+  if (fotoUrls.some((url) => typeof url !== "string" || !url.trim())) {
+    return res.status(400).json({
+      message: "Las URLs de fotos deben ser cadenas de texto válidas",
+      error: "Las URLs de fotos deben ser cadenas de texto válidas",
+    });
   }
 
   // Parsear valores numéricos
   const subcategoriaIdInt = parseInt(subcategoriaId, 10);
-  const nivelesIdInt = parseInt(nivelesId, 10);
+  const ubi_alma_idInt = parseInt(ubi_alma_id, 10);
   const cantidadInt = parseInt(cantidad, 10);
   const precioPublicoFloat = parseFloat(precio_publico);
   const precioContratistaFloat = parseFloat(precio_contratista);
@@ -123,38 +151,59 @@ const createProducto = async (req, res) => {
   const productoExistente = await prisma.variantes.findFirst({
     where: { codigo },
   });
+
   if (productoExistente) {
-    return res.status(400).json({ message: "La variante ya existe", error: "La variante ya existe" });
+    return res.status(400).json({
+      message: "La variante ya existe",
+      error: "La variante ya existe",
+    });
   }
 
   const subcategoriaExistente = await prisma.subcategorias.findFirst({
     where: { id: subcategoriaIdInt },
   });
+
   if (!subcategoriaExistente) {
-    return res.status(400).json({ message: "La subcategoría no existe", error: "La subcategoría no existe" });
+    return res.status(400).json({
+      message: "La subcategoría no existe",
+      error: "La subcategoría no existe",
+    });
   }
 
-  const nivelExistente = await prisma.niveles.findFirst({
-    where: { id: nivelesIdInt },
+  const ubi_almaExistente = await prisma.ubicacion_almacen.findFirst({
+    where: { id: ubi_alma_idInt },
   });
-  if (!nivelExistente) {
-    return res.status(400).json({ message: "El nivel no existe", error: "El nivel no existe" });
+
+  if (!ubi_almaExistente) {
+    return res.status(400).json({
+      message: "La ubicación de almacén no existe",
+      error: "La ubicación de almacén no existe",
+    });
   }
 
   try {
-    // Manejo de subida de archivo
-    let fotoUrl = foto;
-    if (req.file) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const extension = req.file.originalname.split(".").pop();
-      const key = `productos/${uniqueSuffix}.${extension}`;
+    // Recopilar URLs de fotos (archivos y URLs)
+    const fotosArray = [];
 
-      await uploadFile({
-        key: key,
-        body: req.file.buffer,
-        contentType: req.file.mimetype,
-      });
-      fotoUrl = getPublicUrl(key);
+    // Procesar archivos subidos
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        const extension = file.originalname.split(".").pop();
+        const key = `productos/${uniqueSuffix}.${extension}`;
+
+        await uploadFile({
+          key: key,
+          body: file.buffer,
+          contentType: file.mimetype,
+        });
+        fotosArray.push(getPublicUrl(key));
+      }
+    }
+
+    // Agregar URLs de texto
+    if (fotoUrls && fotoUrls.length > 0) {
+      fotosArray.push(...fotoUrls.filter((url) => url && url.trim()));
     }
 
     // Crear el producto
@@ -168,7 +217,7 @@ const createProducto = async (req, res) => {
     const varianteCreada = await prisma.variantes.create({
       data: {
         producto_id: productoCreado.id,
-        nivelesId: nivelesIdInt,
+        ubicacion_almacen_id: ubi_alma_idInt,
         nombre,
         codigo,
         color,
@@ -178,7 +227,6 @@ const createProducto = async (req, res) => {
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
-        foto: fotoUrl,
         valor_stock: parseFloat(valor_stock),
       },
     });
@@ -195,6 +243,18 @@ const createProducto = async (req, res) => {
       },
     });
 
+    // Crear múltiples registros de fotos
+    const fotosCreadas = await Promise.all(
+      fotosArray.map((fotoUrl) =>
+        prisma.fotos.create({
+          data: {
+            variante_id: varianteCreada.id,
+            url: fotoUrl,
+          },
+        }),
+      ),
+    );
+
     // Registrar en auditoría
     await prisma.auditoria.create({
       data: {
@@ -205,9 +265,11 @@ const createProducto = async (req, res) => {
       },
     });
 
-    return res.status(200).json({ message: "Producto y variante básica creados con éxito", data: varianteCreada });
+    return res.status(201).json({
+      message: "Producto y variante básica creados con éxito",
+      data: { variante: varianteCreada, fotos: fotosCreadas },
+    });
   } catch (error) {
-    console.error("Error al crear el producto:", error);
     return res.status(500).json({
       message: "Error al crear el producto",
       error: "Error al crear el producto",
@@ -219,7 +281,7 @@ const createProducto = async (req, res) => {
 
 const crearVariante = async (req, res) => {
   const {
-    nivelesId,
+    ubi_alma_id, // opcional
     productoId,
     nombre,
     codigo,
@@ -234,11 +296,6 @@ const crearVariante = async (req, res) => {
   } = req.body;
 
   // Validar los datos de entrada variante
-  await check("nivelesId")
-    .notEmpty()
-    .isInt()
-    .withMessage("El nivelesId es obligatorio y debe ser un número entero")
-    .run(req);
   await check("productoId")
     .notEmpty()
     .isInt()
@@ -311,14 +368,49 @@ const crearVariante = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
-  }
-
-  // Validar foto (archivo o URL)
-  if (!req.file && !foto) {
     return res
       .status(400)
-      .json({ message: "La foto es obligatoria (archivo o URL de texto)", error: "La foto es obligatoria (archivo o URL de texto)" });
+      .json({ message: "Errores de validación", errors: errors.array() });
+  }
+
+  // Validar fotos (archivos o URLs) - máximo 5
+  const allowedFormats = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const files = req.files || [];
+  const fotoUrls = Array.isArray(foto) ? foto : foto ? [foto] : [];
+  const totalFotos = files.length + fotoUrls.length;
+
+  if (totalFotos === 0) {
+    return res.status(400).json({
+      message: "Al menos una foto es obligatoria (archivo o URL de texto)",
+      error: "Al menos una foto es obligatoria (archivo o URL de texto)",
+    });
+  }
+
+  if (totalFotos > 5) {
+    return res.status(400).json({
+      message: "Máximo 5 fotos permitidas",
+      error: "Máximo 5 fotos permitidas",
+    });
+  }
+
+  // Validar formatos de archivo
+  for (const file of files) {
+    if (!allowedFormats.includes(file.mimetype)) {
+      return res.status(400).json({
+        message: `Formato de archivo no permitido: ${file.originalname}. Solo se permiten JPEG, JPG, PNG y WEBP`,
+        error: "Formato de archivo no permitido",
+      });
+    }
+  }
+
+  // Validar URLs (si son strings)
+  if (Array.isArray(fotoUrls)) {
+    if (fotoUrls.some((url) => typeof url !== "string" || !url.trim())) {
+      return res.status(400).json({
+        message: "Las URLs de fotos deben ser cadenas de texto válidas",
+        error: "Las URLs de fotos deben ser cadenas de texto válidas",
+      });
+    }
   }
 
   //Validar que el codigo no exista en la base de datos
@@ -326,28 +418,40 @@ const crearVariante = async (req, res) => {
     where: { codigo },
   });
   if (varianteExistente) {
-    return res.status(400).json({ message: "La variante ya existe", error: "La variante ya existe" });
+    return res.status(400).json({
+      message: "La variante ya existe",
+      error: "La variante ya existe",
+    });
   }
 
   try {
-    // Manejo de subida de archivo
-    let fotoUrl = foto;
-    if (req.file) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const extension = req.file.originalname.split(".").pop();
-      const key = `productos/${uniqueSuffix}.${extension}`;
+    // Recopilar URLs de fotos (archivos y URLs)
+    const fotosArray = [];
 
-      await uploadFile({
-        key: key,
-        body: req.file.buffer,
-        contentType: req.file.mimetype,
-      });
-      fotoUrl = getPublicUrl(key);
+    // Procesar archivos subidos
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        const extension = file.originalname.split(".").pop();
+        const key = `productos/${uniqueSuffix}.${extension}`;
+
+        await uploadFile({
+          key: key,
+          body: file.buffer,
+          contentType: file.mimetype,
+        });
+        fotosArray.push(getPublicUrl(key));
+      }
+    }
+
+    // Agregar URLs de texto
+    if (fotoUrls && fotoUrls.length > 0) {
+      fotosArray.push(...fotoUrls.filter((url) => url && url.trim()));
     }
 
     // Parsear valores numéricos
     const productoIdInt = parseInt(productoId, 10);
-    const nivelesIdInt = parseInt(nivelesId, 10);
+    const ubi_alma_idInt = parseInt(ubi_alma_id, 10);
     const cantidadInt = parseInt(cantidad, 10);
     const precioPublicoFloat = parseFloat(precio_publico);
     const precioContratistaFloat = parseFloat(precio_contratista);
@@ -358,7 +462,7 @@ const crearVariante = async (req, res) => {
     const nuevaVariante = await prisma.variantes.create({
       data: {
         producto_id: productoIdInt,
-        nivelesId: nivelesIdInt,
+        ubicacion_almacen_id: ubi_alma_idInt,
         nombre,
         codigo,
         color,
@@ -368,7 +472,6 @@ const crearVariante = async (req, res) => {
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
-        foto: fotoUrl,
         valor_stock: parseFloat(valor_stock),
       },
     });
@@ -391,6 +494,18 @@ const crearVariante = async (req, res) => {
       },
     });
 
+    // Crear múltiples registros de fotos
+    const fotosCreadas = await Promise.all(
+      fotosArray.map((fotoUrl) =>
+        prisma.fotos.create({
+          data: {
+            variante_id: nuevaVariante.id,
+            url: fotoUrl,
+          },
+        }),
+      ),
+    );
+
     // Registrar en auditoría
     await prisma.auditoria.create({
       data: {
@@ -401,10 +516,16 @@ const crearVariante = async (req, res) => {
       },
     });
 
-    return res.status(201).json({ message: "Variante creada con éxito", data: nuevaVariante });
+    return res.status(201).json({
+      message: "Variante creada con éxito",
+      data: { variante: nuevaVariante, fotos: fotosCreadas },
+    });
   } catch (error) {
-        console.log("Error al crear la variante:", error);
-    return res.status(500).json({ message: "Error al crear la variante", error: "Error al crear la variante" });
+    console.log("Error al crear la variante:", error);
+    return res.status(500).json({
+      message: "Error al crear la variante",
+      error: "Error al crear la variante",
+    });
   }
 };
 
@@ -496,7 +617,9 @@ const updateVariante = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
+    return res
+      .status(400)
+      .json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
@@ -534,7 +657,10 @@ const updateVariante = async (req, res) => {
       },
     });
 
-    return res.status(200).json({ message: "Variante actualizada con éxito", data: varianteActualizada });
+    return res.status(200).json({
+      message: "Variante actualizada con éxito",
+      data: varianteActualizada,
+    });
   } catch (error) {
     return res.status(500).json({
       message: "Error al actualizar la variante",
@@ -549,7 +675,10 @@ const getProductosBySubcategoria = async (req, res) => {
 
   // Validar que subcategoriaId sea un número
   if (!subcategoriaId || isNaN(subcategoriaId)) {
-    return res.status(400).json({ message: "El ID de subcategoría es inválido", error: "El ID de subcategoría es inválido" });
+    return res.status(400).json({
+      message: "El ID de subcategoría es inválido",
+      error: "El ID de subcategoría es inválido",
+    });
   }
 
   try {
@@ -575,14 +704,20 @@ const getProductosBySubcategoria = async (req, res) => {
     });
 
     if (productos.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No se encontraron productos para esta categoría", error: "No se encontraron productos para esta categoría" });
+      return res.status(404).json({
+        message: "No se encontraron productos para esta categoría",
+        error: "No se encontraron productos para esta categoría",
+      });
     }
-    return res.status(200).json({ message: "Productos obtenidos exitosamente", data: productos });
+    return res
+      .status(200)
+      .json({ message: "Productos obtenidos exitosamente", data: productos });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error al obtener productos por categoría", error: "Error al obtener productos por categoría" });
+    return res.status(500).json({
+      message: "Error al obtener productos por categoría",
+      error: "Error al obtener productos por categoría",
+    });
   }
 };
 
@@ -613,13 +748,21 @@ const getProductoById = async (req, res) => {
     });
 
     if (!producto) {
-      return res.status(404).json({ message: "Producto no encontrado", error: "Producto no encontrado" });
+      return res.status(404).json({
+        message: "Producto no encontrado",
+        error: "Producto no encontrado",
+      });
     }
 
-    return res.status(200).json({ message: "Producto obtenido exitosamente", data: producto });
+    return res
+      .status(200)
+      .json({ message: "Producto obtenido exitosamente", data: producto });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error al obtener el producto", error: "Error al obtener el producto" });
+    return res.status(500).json({
+      message: "Error al obtener el producto",
+      error: "Error al obtener el producto",
+    });
   }
 };
 
@@ -683,18 +826,24 @@ const getProductosBySearch = async (req, res) => {
       },
     });
 
-    return res.status(200).json({ message: "Productos encontrados exitosamente", data: productos });
+    return res
+      .status(200)
+      .json({ message: "Productos encontrados exitosamente", data: productos });
   } catch (error) {
     console.error("Error al buscar productos:", error);
-    return res
-      .status(500)
-      .json({ message: "Error al buscar productos", error: "Error al buscar productos", details: error.message });
+    return res.status(500).json({
+      message: "Error al buscar productos",
+      error: "Error al buscar productos",
+      details: error.message,
+    });
   }
 };
 
 export {
   createProducto,
   crearVariante,
+  
+  // por cambiar
   updateVariante,
   getProductosBySubcategoria,
   getProductoById,
