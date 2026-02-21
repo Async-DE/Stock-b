@@ -18,7 +18,7 @@ const createUbicacionAlmacen = async (req, res) => {
 
   try {
     
-    const nuevaUbicacion = await prisma.ubicaciones_almacen.create({
+    const nuevaUbicacion = await prisma.ubicacion_almacen.create({
       data: {
         ubicacion_id,
         codigo,
