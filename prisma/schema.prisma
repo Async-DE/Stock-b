@@ -52,30 +52,20 @@ model ubicacion {
   celular   String
   createdAt DateTime @default(now())
 
-  estantes   estantes[]
-  auditorias auditoria[]
+  auditorias         auditoria[]
+  ubicacione_almacen ubicacion_almacen[]
 }
 
-model niveles {
-  id         Int @id @default(autoincrement())
-  estantesId Int
-  niveles    Int
+model ubicacion_almacen {
+  id           Int @id @default(autoincrement())
+  ubicacion_id Int
 
-  estantes estantes? @relation(fields: [estantesId], references: [id])
+  codigo      String
+  tipo        String
+  descripcion String
+  createdAt   DateTime @default(now())
 
-  variantes variantes[]
-}
-
-model estantes {
-  id        Int      @id @default(autoincrement())
-  Seccion   String
-  pasillo   Int
-  createdAt DateTime @default(now())
-
-  ubicacion   ubicacion?  @relation(fields: [ubicacionId], references: [id], onDelete: SetNull)
-  ubicacionId Int?
-  auditorias  auditoria[]
-  niveles     niveles[]
+  ubicacion ubicacion @relation(fields: [ubicacion_id], references: [id], onDelete: Cascade)
 }
 
 model categorias {
@@ -113,12 +103,18 @@ model productos {
   auditorias auditoria[]
 }
 
+model fotos {
+  id          Int @id @default(autoincrement())
+  variante_id Int
+
+  url String
+
+  variante variantes @relation(fields: [variante_id], references: [id], onDelete: Cascade)
+}
+
 model variantes {
   id          Int @id @default(autoincrement())
   producto_id Int
-  nivelesId   Int
-
-  foto String
 
   nombre             String
   codigo             String
@@ -138,10 +134,10 @@ model variantes {
   valor_stock         Float @default(0) // cantidad * costo_compra
 
   producto productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
-  niveles  niveles   @relation(fields: [nivelesId], references: [id], onDelete: Cascade)
 
   ventas     ventas[]
   auditorias auditoria[]
+  fotos      fotos[]
 }
 
 model ventas {
