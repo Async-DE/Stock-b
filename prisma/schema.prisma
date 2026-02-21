@@ -197,9 +197,6 @@ model auditoria {
   ventaId Int?
   venta   ventas? @relation(fields: [ventaId], references: [id], map: "auditoria_venta_fkey")
 
-  estanteId Int?
-  estante   estantes? @relation(fields: [estanteId], references: [id], map: "auditoria_estante_fkey")
-
   categoriaId Int?
   categoria   categorias? @relation(fields: [categoriaId], references: [id], map: "auditoria_categoria_fkey")
 
@@ -217,7 +214,6 @@ model auditoria {
   @@index([productoId])
   @@index([varianteId])
   @@index([ventaId])
-  @@index([estanteId])
   @@index([categoriaId])
   @@index([subcategoriaId])
   @@index([ubicacionId])
