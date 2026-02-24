@@ -66,6 +66,8 @@ model ubicacion_almacen {
   createdAt   DateTime @default(now())
 
   ubicacion ubicacion @relation(fields: [ubicacion_id], references: [id], onDelete: Cascade)
+
+  variantes variantes[]
 }
 
 model categorias {
