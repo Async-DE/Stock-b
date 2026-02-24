@@ -60,9 +60,9 @@ model ubicacion_almacen {
   id           Int @id @default(autoincrement())
   ubicacion_id Int
 
-  codigo      String
-  tipo        String
-  descripcion String
+  codigo      String?
+  tipo        String?
+  descripcion String?
   createdAt   DateTime @default(now())
 
   ubicacion ubicacion @relation(fields: [ubicacion_id], references: [id], onDelete: Cascade)

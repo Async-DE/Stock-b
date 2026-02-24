@@ -532,7 +532,7 @@ const crearVariante = async (req, res) => {
 const updateVariante = async (req, res) => {
   const { varianteId } = req.params;
   const {
-    nivelesId,
+    ubi_alma_id, // opcional
     nombre,
     codigo,
     color,
@@ -542,134 +542,151 @@ const updateVariante = async (req, res) => {
     precio_publico,
     precio_contratista,
     costo_compra,
+    foto, // URLs (string or array)
+    fotosEliminar, // ids de fotos a eliminar
   } = req.body;
 
-  // Validar los datos de entrada variante
-  await check("nivelesId")
-    .notEmpty()
-    .isInt()
-    .withMessage("El nivelesId es obligatorio y debe ser un número entero")
-    .run(req);
-  await check("nombre")
-    .notEmpty()
-    .isString()
-    .withMessage(
-      "El nombre de la variante es obligatorio y debe ser una cadena de texto",
-    )
-    .run(req);
-  await check("codigo")
-    .notEmpty()
-    .isString()
-    .withMessage(
-      "El código de la variante es obligatorio y debe ser una cadena de texto",
-    )
-    .run(req);
-  await check("color")
-    .notEmpty()
-    .isString()
-    .withMessage(
-      "El color de la variante es obligatorio y debe ser una cadena de texto",
-    )
-    .run(req);
-  await check("descripcion")
-    .notEmpty()
-    .isString()
-    .withMessage(
-      "La descripción de la variante es obligatorio y debe ser una cadena de texto",
-    )
-    .run(req);
-  await check("cantidad")
-    .notEmpty()
-    .isInt()
-    .withMessage(
-      "La cantidad de la variante es obligatorio y debe ser un número entero",
-    )
-    .run(req);
-  await check("medidas")
-    .notEmpty()
-    .isString()
-    .withMessage(
-      "Las medidas de la variante es obligatorio y debe ser una cadena de texto",
-    )
-    .run(req);
-  await check("precio_publico")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "El precio público de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("precio_contratista")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "El precio contratista de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
-  await check("costo_compra")
-    .notEmpty()
-    .isFloat()
-    .withMessage(
-      "El costo de compra de la variante es obligatorio y debe ser un número decimal",
-    )
-    .run(req);
+  // Validaciones opcionales: solo validar si vienen
+  await check("ubi_alma_id").optional().isInt().withMessage("El ubi_alma_id debe ser un número entero").run(req);
+  await check("nombre").optional().isString().withMessage("El nombre debe ser una cadena de texto").run(req);
+  await check("codigo").optional().isString().withMessage("El código debe ser una cadena de texto").run(req);
+  await check("color").optional().isString().withMessage("El color debe ser una cadena de texto").run(req);
+  await check("descripcion").optional().isString().withMessage("La descripción debe ser una cadena de texto").run(req);
+  await check("cantidad").optional().isInt().withMessage("La cantidad debe ser un número entero").run(req);
+  await check("medidas").optional().isString().withMessage("Las medidas debe ser una cadena de texto").run(req);
+  await check("precio_publico").optional().isFloat().withMessage("El precio_publico debe ser un número decimal").run(req);
+  await check("precio_contratista").optional().isFloat().withMessage("El precio_contratista debe ser un número decimal").run(req);
+  await check("costo_compra").optional().isFloat().withMessage("El costo_compra debe ser un número decimal").run(req);
 
   const errors = validationResult(req);
-
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ message: "Errores de validación", errors: errors.array() });
+    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
   }
 
-  try {
-    // Parsear valores numéricos
-    const varianteIdInt = parseInt(varianteId, 10);
-    const nivelesIdInt = parseInt(nivelesId, 10);
-    const cantidadInt = parseInt(cantidad, 10);
-    const precioPublicoFloat = parseFloat(precio_publico);
-    const precioContratistaFloat = parseFloat(precio_contratista);
-    const costoCompraFloat = parseFloat(costo_compra);
+  // Manejo de imágenes
+  const allowedFormats = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const files = req.files || [];
+  const fotoUrls = Array.isArray(foto) ? foto : foto ? [foto] : [];
 
-    const varianteActualizada = await prisma.variantes.update({
-      where: { id: varianteIdInt },
-      data: {
-        nivelesId: nivelesIdInt,
-        nombre,
-        codigo,
-        color,
-        descripcion,
-        cantidad: cantidadInt,
-        medidas,
-        precio_publico: precioPublicoFloat,
-        precio_contratista: precioContratistaFloat,
-        costo_compra: costoCompraFloat,
-      },
-    });
+  const fotosEliminarArray = Array.isArray(fotosEliminar)
+    ? fotosEliminar.map((f) => parseInt(f, 10)).filter(Boolean)
+    : fotosEliminar
+    ? [parseInt(fotosEliminar, 10)].filter(Boolean)
+    : [];
+
+  try {
+    const varianteIdInt = parseInt(varianteId, 10);
+
+    // Obtener variante actual para cálculos y validaciones
+    const varianteActual = await prisma.variantes.findUnique({ where: { id: varianteIdInt } });
+
+    if (!varianteActual) {
+      return res.status(404).json({ message: "Variante no encontrada", error: "Variante no encontrada" });
+    }
+
+    // Contar fotos existentes
+    const fotosExistentes = await prisma.fotos.findMany({ where: { variante_id: varianteIdInt } });
+    const existingCount = fotosExistentes.length;
+
+    // Validar formatos de archivos subidos
+    for (const file of files) {
+      if (!allowedFormats.includes(file.mimetype)) {
+        return res.status(400).json({
+          message: `Formato de archivo no permitido: ${file.originalname}. Solo se permiten JPEG, JPG, PNG y WEBP`,
+          error: "Formato de archivo no permitido",
+        });
+      }
+    }
+
+    const newFilesCount = files.length;
+    const newUrlsCount = fotoUrls.length;
+    const deletionsCount = fotosEliminarArray.length;
+
+    const finalCount = existingCount - deletionsCount + newFilesCount + newUrlsCount;
+    if (finalCount > 5) {
+      return res.status(400).json({ message: "Máximo 5 fotos permitidas por variante", error: "Máximo 5 fotos permitidas" });
+    }
+
+    // Eliminar fotos solicitadas
+    if (fotosEliminarArray.length > 0) {
+      await prisma.fotos.deleteMany({ where: { id: { in: fotosEliminarArray }, variante_id: varianteIdInt } });
+    }
+
+    // Procesar archivos subidos y crear registros
+    const fotosNuevasUrls = [];
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        const extension = file.originalname.split(".").pop();
+        const key = `productos/${uniqueSuffix}.${extension}`;
+
+        await uploadFile({ key: key, body: file.buffer, contentType: file.mimetype });
+        fotosNuevasUrls.push(getPublicUrl(key));
+      }
+    }
+
+    // Agregar URLs de texto
+    if (fotoUrls && fotoUrls.length > 0) {
+      fotosNuevasUrls.push(...fotoUrls.filter((u) => u && u.trim()));
+    }
+
+    // Parsear valores numéricos y preparar objeto de update
+    const updateData = {};
+    if (nivelesId !== undefined) updateData.nivelesId = parseInt(nivelesId, 10);
+    if (ubi_alma_id !== undefined) updateData.ubicacion_almacen_id = parseInt(ubi_alma_id, 10);
+    if (nombre !== undefined) updateData.nombre = nombre;
+    if (codigo !== undefined) updateData.codigo = codigo;
+    if (color !== undefined) updateData.color = color;
+    if (descripcion !== undefined) updateData.descripcion = descripcion;
+    if (cantidad !== undefined) updateData.cantidad = parseInt(cantidad, 10);
+    if (medidas !== undefined) updateData.medidas = medidas;
+    if (precio_publico !== undefined) updateData.precio_publico = parseFloat(precio_publico);
+    if (precio_contratista !== undefined) updateData.precio_contratista = parseFloat(precio_contratista);
+    if (costo_compra !== undefined) updateData.costo_compra = parseFloat(costo_compra);
+
+    // Calcular ajuste de valor_stock para la subcategoría si cambia cantidad o costo
+    const cantidadIntNew = updateData.cantidad !== undefined ? updateData.cantidad : varianteActual.cantidad;
+    const costoCompraNew = updateData.costo_compra !== undefined ? updateData.costo_compra : varianteActual.costo_compra;
+
+    const oldValor = parseFloat(varianteActual.cantidad) * parseFloat(varianteActual.costo_compra || 0);
+    const newValor = parseFloat(cantidadIntNew) * parseFloat(costoCompraNew || 0);
+    const deltaValor = parseFloat((newValor - oldValor).toFixed(2));
+
+    // Actualizar la variante
+    const varianteActualizada = await prisma.variantes.update({ where: { id: varianteIdInt }, data: updateData });
+
+    // Crear registros de fotos nuevas en DB
+    if (fotosNuevasUrls.length > 0) {
+      await Promise.all(
+        fotosNuevasUrls.map((url) =>
+          prisma.fotos.create({ data: { variante_id: varianteActualizada.id, url } }),
+        ),
+      );
+    }
+
+    // Actualizar valor_stock en subcategoría si aplica
+    if (deltaValor !== 0) {
+      // Obtener subcategoriaId via producto
+      const producto = await prisma.productos.findUnique({ where: { id: varianteActualizada.producto_id }, select: { subcategoriaId: true } });
+      if (producto && producto.subcategoriaId) {
+        const subcategoria = await prisma.subcategorias.findUnique({ where: { id: producto.subcategoriaId } });
+        if (subcategoria) {
+          await prisma.subcategorias.update({ where: { id: producto.subcategoriaId }, data: { valor_stock: parseFloat(subcategoria.valor_stock || 0) + deltaValor } });
+        }
+      }
+    }
 
     // Registrar en auditoría
-    await prisma.auditoria.create({
-      data: {
-        usuario_id: req.user.id,
-        accion: "UPDATE",
-        productoId: varianteActualizada.producto_id,
-        varianteId: varianteIdInt,
-      },
-    });
+    await prisma.auditoria.create({ data: { usuario_id: req.user.id, accion: "UPDATE", productoId: varianteActualizada.producto_id, varianteId: varianteIdInt } });
 
-    return res.status(200).json({
-      message: "Variante actualizada con éxito",
-      data: varianteActualizada,
-    });
+    return res.status(200).json({ message: "Variante actualizada con éxito" });
   } catch (error) {
-    return res.status(500).json({
-      message: "Error al actualizar la variante",
-      error: "Error al actualizar la variante",
-      details: error.message,
-    });
+    console.error("Error al actualizar variante:", error);
+    return res.status(500).json({ message: "Error al actualizar la variante", error: "Error al actualizar la variante"});
   }
 };
 
+// por ajustar
 const getProductosBySubcategoria = async (req, res) => {
   const { subcategoriaId } = req.params;
 
@@ -842,9 +859,9 @@ const getProductosBySearch = async (req, res) => {
 export {
   createProducto,
   crearVariante,
-  
-  // por cambiar
   updateVariante,
+
+  // por cambiar
   getProductosBySubcategoria,
   getProductoById,
   getProductosBySearch,
