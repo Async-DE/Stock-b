@@ -815,17 +815,22 @@ const getProductosBySubcategoria = async (req, res) => {
       include: {
         subcategoria: {
           include: {
-            categoria: {
-              select: {
-                nombre: true,
+            categoria: true,
+          },
+        },
+        variantes: {
+          include: {
+            fotos: true,
+            ubicacion_almacen: {
+              include: {
+                ubicacion: true,
               },
             },
           },
         },
-        variantes: true,
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
     });
 
@@ -861,15 +866,17 @@ const getProductoById = async (req, res) => {
         },
         variantes: {
           include: {
-            niveles: {
+            fotos: true,
+            ubicacion_almacen: {
               include: {
-                estantes: {
-                  include: { ubicacion: true },
-                },
+                ubicacion: true,
               },
             },
           },
         },
+      },
+      orderBy: {
+        createdAt: "asc",
       },
     });
 
@@ -924,31 +931,22 @@ const getProductosBySearch = async (req, res) => {
       include: {
         subcategoria: {
           include: {
-            categoria: {
-              select: {
-                nombre: true,
-              },
-            },
+            categoria: true,
           },
         },
         variantes: {
-          select: {
-            nombre: true,
-            color: true,
-            medidas: true,
-            foto: true,
-            precio_publico: true,
-            precio_contratista: true,
-            cantidad: true,
-            niveles: {
+          include: {
+            fotos: true,
+            ubicacion_almacen: {
               include: {
-                estantes: {
-                  include: { ubicacion: true },
-                },
+                ubicacion: true,
               },
             },
           },
         },
+      },
+      orderBy: {
+        createdAt: "asc",
       },
     });
 
@@ -970,7 +968,6 @@ export {
   crearVariante,
   updateVariante,
 
-  // por cambiar
   getProductosBySubcategoria,
   getProductoById,
   getProductosBySearch,
