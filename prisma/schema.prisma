@@ -117,7 +117,7 @@ model fotos {
 model variantes {
   id          Int @id @default(autoincrement())
   producto_id Int
-  ubicacion_almacen_id Int?
+  ubicacion_almacen_id Int
 
   nombre             String
   codigo             String
@@ -137,7 +137,7 @@ model variantes {
   valor_stock         Float @default(0) // cantidad * costo_compra
 
   producto productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
-  ubicacion_almacen ubicacion_almacen? @relation(fields: [ubicacion_almacen_id], references: [id], onDelete: SetNull)
+  ubicacion_almacen ubicacion_almacen @relation(fields: [ubicacion_almacen_id], references: [id], onDelete: SetNull)
 
   ventas     ventas[]
   auditorias auditoria[]
