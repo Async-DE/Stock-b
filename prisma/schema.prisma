@@ -134,7 +134,7 @@ model variantes {
   ganacia_publico     Float @default(0)
   ganacia_contratista Float @default(0)
   ganancias_stock     Float @default(0)
-  valor_stock         Float @default(0) // cantidad * costo_compra
+  valor_stock         Float @default(0)
 
   producto productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
   ubicacion_almacen ubicacion_almacen @relation(fields: [ubicacion_almacen_id], references: [id], onDelete: SetNull)
