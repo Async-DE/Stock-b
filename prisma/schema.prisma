@@ -125,10 +125,10 @@ model variantes {
   descripcion String
   cantidad    Float
 
-  alto    Float @default(0)
-  ancho   Float @default(0)
-  largo   Float @default(0)
-  medidas String
+  alto    Float? @default(0)
+  ancho   Float? @default(0)
+  largo   Float? @default(0)
+  medidas String? @default("N/A")
 
   precio_publico     Float
   precio_contratista Float
