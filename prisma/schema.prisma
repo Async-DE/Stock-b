@@ -125,9 +125,9 @@ model variantes {
   descripcion String
   cantidad    Float
 
-  alto    Float
-  ancho   Float
-  largo   Float
+  alto    Float @default(0)
+  ancho   Float @default(0)
+  largo   Float @default(0)
   medidas String
 
   precio_publico     Float
