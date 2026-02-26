@@ -553,7 +553,7 @@ const updateVariante = async (req, res) => {
     precio_publico,
     precio_contratista,
     costo_compra,
-    foto, // URLs (string or array)
+    foto,
     fotosEliminar, // ids de fotos a eliminar
   } = req.body;
 
@@ -702,7 +702,6 @@ const updateVariante = async (req, res) => {
 
     // Parsear valores numéricos y preparar objeto de update
     const updateData = {};
-    if (nivelesId !== undefined) updateData.nivelesId = parseInt(nivelesId, 10);
     if (ubi_alma_id !== undefined)
       updateData.ubicacion_almacen_id = parseInt(ubi_alma_id, 10);
     if (nombre !== undefined) updateData.nombre = nombre;
@@ -875,9 +874,6 @@ const getProductoById = async (req, res) => {
           },
         },
       },
-      orderBy: {
-        createdAt: "asc",
-      },
     });
 
     if (!producto) {
@@ -967,7 +963,6 @@ export {
   createProducto,
   crearVariante,
   updateVariante,
-
   getProductosBySubcategoria,
   getProductoById,
   getProductosBySearch,
