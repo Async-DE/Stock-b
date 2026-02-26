@@ -10,8 +10,10 @@ const createProducto = async (req, res) => {
     codigo,
     color,
     descripcion,
+    alto,
+    ancho,
+    largo,
     cantidad,
-    medidas,
     precio_publico,
     precio_contratista,
     costo_compra,
@@ -26,14 +28,12 @@ const createProducto = async (req, res) => {
       "El ID de subcategoría es obligatorio y debe ser un número entero",
     )
     .run(req);
-
+  // ubicacion_almacen_id ahora es obligatorio
   await check("ubi_alma_id")
-    .optional()
+    .notEmpty()
     .isInt()
-    .withMessage("El ubi_alma_id debe ser un número entero")
+    .withMessage("El ubi_alma_id es obligatorio y debe ser un número entero")
     .run(req);
-
-  // Validar los datos de entrada variante
   await check("nombre")
     .notEmpty()
     .isString()
@@ -69,11 +69,25 @@ const createProducto = async (req, res) => {
       "La cantidad de la variante es obligatorio y debe ser un número entero",
     )
     .run(req);
-  await check("medidas")
+  await check("alto")
     .notEmpty()
-    .isString()
+    .isFloat()
     .withMessage(
-      "Las medidas de la variante es obligatorio y debe ser una cadena de texto",
+      "El alto de la variante es obligatorio y debe ser un número decimal",
+    )
+    .run(req);
+  await check("ancho")
+    .notEmpty()
+    .isFloat()
+    .withMessage(
+      "El ancho de la variante es obligatorio y debe ser un número decimal",
+    )
+    .run(req);
+  await check("largo")
+    .notEmpty()
+    .isFloat()
+    .withMessage(
+      "El largo de la variante es obligatorio y debe ser un número decimal",
     )
     .run(req);
   await check("precio_publico")
@@ -219,6 +233,8 @@ const createProducto = async (req, res) => {
       },
     });
 
+    const medidasSt = `${alto} ft x ${ancho} ft x ${largo} ft = ${parseFloat(alto) * parseFloat(ancho) * parseFloat(largo)}`;
+
     // Crear variante básica relacionada con el producto
     const varianteCreada = await prisma.variantes.create({
       data: {
@@ -229,7 +245,10 @@ const createProducto = async (req, res) => {
         color,
         descripcion,
         cantidad: cantidadInt,
-        medidas,
+        alto: parseFloat(alto),
+        ancho: parseFloat(ancho),
+        largo: parseFloat(largo),
+        medidas: medidasSt,
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
@@ -287,14 +306,16 @@ const createProducto = async (req, res) => {
 
 const crearVariante = async (req, res) => {
   const {
-    ubi_alma_id, // opcional
+    ubi_alma_id,
     productoId,
     nombre,
     codigo,
     color,
     descripcion,
     cantidad,
-    medidas,
+    alto,
+    ancho,
+    largo,
     precio_publico,
     precio_contratista,
     costo_compra,
@@ -302,10 +323,11 @@ const crearVariante = async (req, res) => {
   } = req.body;
 
   // Validar los datos de entrada variante
+  // ubicacion_almacen_id ahora es obligatorio
   await check("ubi_alma_id")
-    .optional()
+    .notEmpty()
     .isInt()
-    .withMessage("El ubi_alma_id debe ser un número entero")
+    .withMessage("El ubi_alma_id es obligatorio y debe ser un número entero")
     .run(req);
   await check("productoId")
     .notEmpty()
@@ -347,11 +369,25 @@ const crearVariante = async (req, res) => {
       "La cantidad de la variante es obligatorio y debe ser un número entero",
     )
     .run(req);
-  await check("medidas")
+  await check("alto")
     .notEmpty()
-    .isString()
+    .isFloat()
     .withMessage(
-      "Las medidas de la variante es obligatorio y debe ser una cadena de texto",
+      "El alto de la variante es obligatorio y debe ser un número decimal",
+    )
+    .run(req);
+  await check("ancho")
+    .notEmpty()
+    .isFloat()
+    .withMessage(
+      "El ancho de la variante es obligatorio y debe ser un número decimal",
+    )
+    .run(req);
+  await check("largo")
+    .notEmpty()
+    .isFloat()
+    .withMessage(
+      "El largo de la variante es obligatorio y debe ser un número decimal",
     )
     .run(req);
   await check("precio_publico")
@@ -470,6 +506,8 @@ const crearVariante = async (req, res) => {
 
     const valor_stock = (cantidadInt * costoCompraFloat).toFixed(2);
 
+    const medidasSt = `${alto} ft x ${ancho} ft x ${largo} ft = ${parseFloat(alto) * parseFloat(ancho) * parseFloat(largo)}`;
+
     const nuevaVariante = await prisma.variantes.create({
       data: {
         producto_id: productoIdInt,
@@ -479,7 +517,10 @@ const crearVariante = async (req, res) => {
         color,
         descripcion,
         cantidad: cantidadInt,
-        medidas,
+        alto: parseFloat(alto),
+        ancho: parseFloat(ancho),
+        largo: parseFloat(largo),
+        medidas: medidasSt,
         precio_publico: precioPublicoFloat,
         precio_contratista: precioContratistaFloat,
         costo_compra: costoCompraFloat,
@@ -549,7 +590,9 @@ const updateVariante = async (req, res) => {
     color,
     descripcion,
     cantidad,
-    medidas,
+    alto,
+    ancho,
+    largo,
     precio_publico,
     precio_contratista,
     costo_compra,
@@ -588,10 +631,20 @@ const updateVariante = async (req, res) => {
     .isInt()
     .withMessage("La cantidad debe ser un número entero")
     .run(req);
-  await check("medidas")
+  await check("alto")
     .optional()
-    .isString()
-    .withMessage("Las medidas debe ser una cadena de texto")
+    .isFloat()
+    .withMessage("El alto debe ser un número decimal")
+    .run(req);
+  await check("ancho")
+    .optional()
+    .isFloat()
+    .withMessage("El ancho debe ser un número decimal")
+    .run(req);
+  await check("largo")
+    .optional()
+    .isFloat()
+    .withMessage("El largo debe ser un número decimal")
     .run(req);
   await check("precio_publico")
     .optional()
@@ -709,13 +762,25 @@ const updateVariante = async (req, res) => {
     if (color !== undefined) updateData.color = color;
     if (descripcion !== undefined) updateData.descripcion = descripcion;
     if (cantidad !== undefined) updateData.cantidad = parseInt(cantidad, 10);
-    if (medidas !== undefined) updateData.medidas = medidas;
+    if (alto !== undefined) updateData.alto = parseFloat(alto);
+    if (ancho !== undefined) updateData.ancho = parseFloat(ancho);
+    if (largo !== undefined) updateData.largo = parseFloat(largo);
     if (precio_publico !== undefined)
       updateData.precio_publico = parseFloat(precio_publico);
     if (precio_contratista !== undefined)
       updateData.precio_contratista = parseFloat(precio_contratista);
     if (costo_compra !== undefined)
       updateData.costo_compra = parseFloat(costo_compra);
+
+    // Sólo recalcular medidas si alguna dimensión se modificó
+    if (alto !== undefined || ancho !== undefined || largo !== undefined) {
+      const finalAlto = alto !== undefined ? parseFloat(alto) : varianteActual.alto;
+      const finalAncho = ancho !== undefined ? parseFloat(ancho) : varianteActual.ancho;
+      const finalLargo = largo !== undefined ? parseFloat(largo) : varianteActual.largo;
+      updateData.medidas = `${finalAlto} ft x ${finalAncho} ft x ${finalLargo} ft = ${
+        finalAlto * finalAncho * finalLargo
+      }`;
+    }
 
     // Calcular ajuste de valor_stock para la subcategoría si cambia cantidad o costo
     const cantidadIntNew =
