@@ -5,11 +5,11 @@ const createVenta = async (req, res) => {
   const {
     varianteId,
     cantidad,
-    total_venta,
     nombre_cliente,
     contacto_cliente,
     tipo_venta,
     costos_extras,
+    // total_venta already se calcula en el backend
   } = req.body;
 
   // Ejecutar validaciones await para que validationResult funcione correctamente
@@ -22,11 +22,6 @@ const createVenta = async (req, res) => {
     .notEmpty()
     .isInt({ gt: 0 })
     .withMessage("cantidad debe ser un entero")
-    .run(req);
-  await check("total_venta")
-    .notEmpty()
-    .isFloat({ gt: 0 })
-    .withMessage("total_venta debe ser un número decimal")
     .run(req);
   await check("nombre_cliente")
     .notEmpty()
@@ -51,13 +46,15 @@ const createVenta = async (req, res) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ message: "Errores de validación", errors: errors.array() });
+    return res
+      .status(400)
+      .json({ message: "Errores de validación", errors: errors.array() });
   }
 
   try {
     const varianteIdInt = parseInt(varianteId, 10);
     const cantidadInt = parseInt(cantidad, 10);
-    const totalVentaFloat = parseFloat(total_venta);
+    // totalVenta se calcula más abajo usando el precio correspondiente
 
     // Obtener la variante actual
     const variante = await prisma.variantes.findUnique({
@@ -65,14 +62,22 @@ const createVenta = async (req, res) => {
     });
 
     if (!variante) {
-      return res.status(404).json({ message: "Variante no encontrada", error: "Variante no encontrada" });
+      return res
+        .status(404)
+        .json({
+          message: "Variante no encontrada",
+          error: "Variante no encontrada",
+        });
     }
 
     // Validar que hay cantidad suficiente
     if (variante.cantidad < cantidadInt) {
       return res
         .status(400)
-        .json({ message: "Cantidad insuficiente en stock", error: "Cantidad insuficiente en stock" });
+        .json({
+          message: "Cantidad insuficiente en stock",
+          error: "Cantidad insuficiente en stock",
+        });
     }
 
     const subcategoriaId = await prisma.productos.findUnique({
@@ -93,6 +98,7 @@ const createVenta = async (req, res) => {
       tipo_venta === "publico" ? precio_publico : precio_contratista;
 
     const gananciaUnitaria = precioVenta - costo_compra;
+    const totalVentaFloat = precioVenta * cantidadInt; // suma que pagó el cliente
     const gananciaTotalVenta = gananciaUnitaria * cantidadInt;
 
     // Calcular costos extras totales si existen
@@ -140,13 +146,14 @@ const createVenta = async (req, res) => {
           cantidad: variante.cantidad - cantidadInt,
           // Actualizar ganancias según tipo de venta
           ...(tipo_venta === "publico" && {
-            ganacia_publico: variante.ganacia_publico + totalVentaFloat,
+            ganacia_publico: variante.ganacia_publico + gananciaTotalVenta,
           }),
           ...(tipo_venta === "contratista" && {
-            ganacia_contratista: variante.ganacia_contratista + totalVentaFloat,
+            ganacia_contratista:
+              variante.ganacia_contratista + gananciaTotalVenta,
           }),
           // Actualizar ganancias totales del stock
-          ganancias_stock: variante.ganancias_stock + totalVentaFloat,
+          ganancias_stock: variante.ganancias_stock + gananciaTotalVenta,
           valor_stock:
             parseFloat(variante.valor_stock) - parseFloat(totalVentaFloat),
         },
@@ -167,7 +174,8 @@ const createVenta = async (req, res) => {
         const subcategoriaActualizada = await tx.subcategorias.update({
           where: { id: subcategoriaId.subcategoriaId },
           data: {
-            ganancias_ventas: subcategoria.ganancias_ventas + totalVentaFloat,
+            ganancias_ventas:
+              subcategoria.ganancias_ventas + gananciaTotalVenta,
             valor_stock:
               parseFloat(subcategoria.valor_stock) -
               parseFloat(totalVentaFloat),
@@ -196,15 +204,20 @@ const createVenta = async (req, res) => {
       message: "Venta creada exitosamente",
       data: {
         ...nuevaVenta,
-        ganancia_total_venta: totalVentaFloat,
+        total_venta: totalVentaFloat,
+        ganancia_total_venta: gananciaTotalVenta,
         costos_extras_aplicados: costosExtrasValidos,
-      }
+      },
     });
   } catch (error) {
     console.error("Error al crear venta:", error);
     return res
       .status(500)
-      .json({ message: "Error al crear la venta", error: "Error al crear la venta", details: error.message });
+      .json({
+        message: "Error al crear la venta",
+        error: "Error al crear la venta",
+        details: error.message,
+      });
   }
 };
 
@@ -230,11 +243,17 @@ const getVentasByDateRange = async (req, res) => {
         costosExtras: true,
       },
     });
-    return res.status(200).json({ message: "Ventas obtenidas exitosamente", data: ventas });
+    return res
+      .status(200)
+      .json({ message: "Ventas obtenidas exitosamente", data: ventas });
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error al obtener las ventas", error: "Error al obtener las ventas", details: error.message });
+      .json({
+        message: "Error al obtener las ventas",
+        error: "Error al obtener las ventas",
+        details: error.message,
+      });
   }
 };
 
@@ -260,9 +279,16 @@ const searchVentas = async (req, res) => {
         costosExtras: true,
       },
     });
-    return res.status(200).json({ message: "Ventas encontradas exitosamente", data: ventas });
+    return res
+      .status(200)
+      .json({ message: "Ventas encontradas exitosamente", data: ventas });
   } catch (error) {
-    return res.status(500).json({ message: "Error al buscar las ventas", error: "Error al buscar las ventas" });
+    return res
+      .status(500)
+      .json({
+        message: "Error al buscar las ventas",
+        error: "Error al buscar las ventas",
+      });
   }
 };
 
