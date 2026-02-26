@@ -115,34 +115,39 @@ model fotos {
 }
 
 model variantes {
-  id          Int @id @default(autoincrement())
-  producto_id Int
+  id                   Int @id @default(autoincrement())
+  producto_id          Int
   ubicacion_almacen_id Int
 
-  nombre             String
-  codigo             String
-  color              String
-  descripcion        String
-  cantidad           Int
-  medidas            String
+  nombre      String
+  codigo      String
+  color       String
+  descripcion String
+  cantidad    Float
+
+  alto    Float
+  ancho   Float
+  largo   Float
+  medidas String
+
   precio_publico     Float
   precio_contratista Float
   costo_compra       Float
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   ganacia_publico     Float @default(0)
   ganacia_contratista Float @default(0)
   ganancias_stock     Float @default(0)
   valor_stock         Float @default(0)
 
-  producto productos @relation(fields: [producto_id], references: [id], onDelete: Cascade)
+  producto          productos         @relation(fields: [producto_id], references: [id], onDelete: Cascade)
   ubicacion_almacen ubicacion_almacen @relation(fields: [ubicacion_almacen_id], references: [id], onDelete: SetNull)
 
   ventas     ventas[]
   auditorias auditoria[]
   fotos      fotos[]
-
 }
 
 model ventas {
