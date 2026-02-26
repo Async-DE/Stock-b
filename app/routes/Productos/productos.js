@@ -12,7 +12,7 @@ import upload from "../../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 
-router.post("/crear", authMiddleware, upload.single("foto"), createProducto);
+router.post("/crear", authMiddleware, upload.array("foto", 5), createProducto);
 
 router.get("/ver/:id", authMiddleware, getProductoById);
 
@@ -20,9 +20,9 @@ router.post("/verbuscar", authMiddleware, getProductosBySearch);
 
 router.get("/ver/subcategoria/:subcategoriaId", authMiddleware, getProductosBySubcategoria);
 //--------------------------------------------------------
-router.post("/variantes/crear", authMiddleware, upload.single("foto"), crearVariante);
+router.post("/variantes/crear", authMiddleware, upload.array("foto", 5), crearVariante);
 
-router.put("/variantes/actualizar/:varianteId", authMiddleware, upload.single("foto"), updateVariante);
+router.put("/variantes/actualizar/:varianteId", authMiddleware, upload.array("foto", 5), updateVariante);
 
 
 export default router;

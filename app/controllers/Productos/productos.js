@@ -5,7 +5,7 @@ import { uploadFile, getPublicUrl } from "../../bucket_service/bucket.js";
 const createProducto = async (req, res) => {
   const {
     subcategoriaId,
-    ubi_alma_id, // opcional
+    ubi_alma_id,
     nombre,
     codigo,
     color,
