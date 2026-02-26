@@ -109,7 +109,7 @@ Script automatizado PowerShell que ejecuta un test completo de **todos los 30 en
 21. `GET /productos/ver/subcategoria/:id` - Productos por subcategoría ✅ CORREGIDO
 
 ### Variantes (2)
-22. `POST /productos/variantes/crear` - Crear variante de producto
+22. `POST /productos/variantes/crear` - Crear variante de producto (alto/ancho/largo opcionales)
 23. `PUT /productos/variantes/actualizar/:id` - Actualizar variante
 
 ### Ventas (3)
