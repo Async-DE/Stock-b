@@ -369,13 +369,15 @@ if ($subCategoryId -and $nivelId) {
     try {
         $prodBody = @{
             subcategoriaId=$subCategoryId
-            nivelesId=$nivelId
+            ubi_alma_id=$nivelId
             nombre="Producto_$(Get-Random)"
             codigo="COD_$(Get-Random 10000)"
             color="Rojo"
             descripcion="Descripción del producto"
             cantidad=100
-            medidas="10x15x20"
+            alto=10
+            ancho=15
+            largo=20
             precio_publico=150.50
             precio_contratista=120.50
             costo_compra=80.00
@@ -440,14 +442,16 @@ Write-Log "`n[INFO] Paso 8: Variantes..." $colorINFO
 if ($nivelId -and $productoId) {
     try {
         $varBody = @{
-            nivelesId=$nivelId
+            ubi_alma_id=$nivelId
             productoId=$productoId
             nombre="Variante_$(Get-Random)"
             codigo="VAR_$(Get-Random 10000)"
             color="Azul"
             descripcion="Variante de producto"
             cantidad=50
-            medidas="8x12x16"
+            alto=8
+            ancho=12
+            largo=16
             precio_publico=200.00
             precio_contratista=160.00
             costo_compra=100.00
@@ -475,7 +479,7 @@ $num++
 
 # 21. PUT /productos/variantes/actualizar/{id}
 if ($varianteId) {
-    Test-Endpoint $num PUT "/productos/variantes/actualizar/$varianteId" @{nivelesId=$nivelId; nombre="Variante_Updated"; codigo="VAR_UPD_$(Get-Random)"; color="Verde"; descripcion="Variante actualizada"; cantidad=60; medidas="9x13x17"; precio_publico=180.00; precio_contratista=144.00; costo_compra=90.00; foto="var_upd.jpg"} "Variantes" | Out-Null
+    Test-Endpoint $num PUT "/productos/variantes/actualizar/$varianteId" @{ubi_alma_id=$nivelId; nombre="Variante_Updated"; codigo="VAR_UPD_$(Get-Random)"; color="Verde"; descripcion="Variante actualizada"; cantidad=60; alto=9; ancho=13; largo=17; precio_publico=180.00; precio_contratista=144.00; costo_compra=90.00; foto="var_upd.jpg"} "Variantes" | Out-Null
 } else {
     $script:failCount++
     $line = "[ERROR] [$num/30] PUT /productos/variantes/actualizar/? -> No Variant ID"

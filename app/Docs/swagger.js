@@ -756,13 +756,15 @@ Soporta paginación con ?take= y ?skip=`,
               },
               example: {
                 subcategoriaId: 1,
-                nivelesId: 5,
+                ubi_alma_id: 5,
                 nombre: "Tornillo Phillips",
                 codigo: "TOR-PH-001",
                 color: "Plateado",
                 descripcion: "Tornillo Phillips 1/4 x 2 pulgadas",
                 cantidad: 500,
-                medidas: "1/4 x 2 in",
+                alto: 0.25,
+                ancho: 0.5,
+                largo: 2,
                 precio_publico: 1.5,
                 precio_contratista: 1.2,
                 costo_compra: 0.8,
@@ -942,7 +944,8 @@ Soporta paginación con ?take= y ?skip=`,
       post: {
         tags: ["Productos"],
         summary: "Crear variante adicional",
-        description: "Crea una nueva variante para un producto existente. La foto puede enviarse como URL o archivo multipart/form-data.",
+        description:
+          "Crea una nueva variante para un producto existente. La foto puede enviarse como URL o archivo multipart/form-data.",
         security: [
           {
             bearerAuth: [],
@@ -954,6 +957,22 @@ Soporta paginación con ?take= y ?skip=`,
             "application/json": {
               schema: {
                 $ref: "#/components/schemas/CreateVariante",
+              },
+              example: {
+                ubi_alma_id: 5,
+                productoId: 123,
+                nombre: "Variante ejemplo",
+                codigo: "VAR-001",
+                color: "Azul",
+                descripcion: "Variante de muestra",
+                cantidad: 50,
+                alto: 2.5,
+                ancho: 1.5,
+                largo: 0.75,
+                precio_publico: 200.0,
+                precio_contratista: 160.0,
+                costo_compra: 100.0,
+                foto: "https://ejemplo.com/variante.jpg",
               },
             },
           },
@@ -991,7 +1010,8 @@ Soporta paginación con ?take= y ?skip=`,
       put: {
         tags: ["Productos"],
         summary: "Actualizar variante",
-        description: "Actualiza los datos de una variante existente. La foto puede enviarse como URL o archivo multipart/form-data.",
+        description:
+          "Actualiza los datos de una variante existente. La foto puede enviarse como URL o archivo multipart/form-data.",
         security: [
           {
             bearerAuth: [],
@@ -1012,6 +1032,21 @@ Soporta paginación con ?take= y ?skip=`,
             "application/json": {
               schema: {
                 $ref: "#/components/schemas/UpdateVariante",
+              },
+              example: {
+                ubi_alma_id: 5,
+                nombre: "Variante modificada",
+                codigo: "VAR-002",
+                color: "Verde",
+                descripcion: "Actualización parcial",
+                cantidad: 60,
+                alto: 3.0,
+                ancho: 2.0,
+                largo: 1.0,
+                precio_publico: 220.0,
+                precio_contratista: 176.0,
+                costo_compra: 110.0,
+                foto: "https://ejemplo.com/variante2.jpg",
               },
             },
           },
@@ -1647,7 +1682,8 @@ Soporta paginación con ?take= y ?skip=`,
             in: "path",
             required: true,
             schema: { type: "string" },
-            description: "Carpeta donde está almacenada la imagen (ej: productos)",
+            description:
+              "Carpeta donde está almacenada la imagen (ej: productos)",
             example: "productos",
           },
           {
@@ -2160,13 +2196,15 @@ Soporta paginación con ?take= y ?skip=`,
           "Crea un producto y su primera variante en una sola operación. Nota: La variante se relaciona con un nivel específico del estante, no directamente con el estante o ubicación.",
         required: [
           "subcategoriaId",
-          "nivelesId",
+          "ubi_alma_id",
           "nombre",
           "codigo",
           "color",
           "descripcion",
           "cantidad",
-          "medidas",
+          "alto",
+          "ancho",
+          "largo",
           "precio_publico",
           "precio_contratista",
           "costo_compra",
@@ -2177,9 +2215,10 @@ Soporta paginación con ?take= y ?skip=`,
             type: "integer",
             description: "ID de la subcategoría del producto (requerido)",
           },
-          nivelesId: {
+          ubi_alma_id: {
             type: "integer",
-            description: "ID del nivel del estante donde se almacena la variante. El nivel pertenece a un estante específico que a su vez está en una ubicación.",
+            description:
+              "ID de la ubicación de almacén donde se almacena la variante. Corresponde a un registro de ubicacion_almacen.",
           },
           nombre: {
             type: "string",
@@ -2202,9 +2241,20 @@ Soporta paginación con ?take= y ?skip=`,
             minimum: 0,
             description: "Cantidad en stock",
           },
-          medidas: {
-            type: "string",
-            description: "Dimensiones o medidas",
+          alto: {
+            type: "number",
+            format: "float",
+            description: "Altura del producto",
+          },
+          ancho: {
+            type: "number",
+            format: "float",
+            description: "Ancho del producto",
+          },
+          largo: {
+            type: "number",
+            format: "float",
+            description: "Largo del producto",
           },
           precio_publico: {
             type: "number",
@@ -2226,7 +2276,8 @@ Soporta paginación con ?take= y ?skip=`,
           },
           foto: {
             type: "string",
-            description: "URL de la imagen del producto o archivo multipart/form-data",
+            description:
+              "URL de la imagen del producto o archivo multipart/form-data",
           },
         },
       },
@@ -2236,13 +2287,15 @@ Soporta paginación con ?take= y ?skip=`,
         description: "Crea una variante adicional para un producto existente",
         required: [
           "productoId",
-          "nivelesId",
+          "ubi_alma_id",
           "nombre",
           "codigo",
           "color",
           "descripcion",
           "cantidad",
-          "medidas",
+          "alto",
+          "ancho",
+          "largo",
           "precio_publico",
           "precio_contratista",
           "costo_compra",
@@ -2253,9 +2306,9 @@ Soporta paginación con ?take= y ?skip=`,
             type: "integer",
             description: "ID del producto padre",
           },
-          nivelesId: {
+          ubi_alma_id: {
             type: "integer",
-            description: "ID del nivel del estante donde se almacena",
+            description: "ID de la ubicación de almacén donde se almacena",
           },
           nombre: {
             type: "string",
@@ -2273,8 +2326,20 @@ Soporta paginación con ?take= y ?skip=`,
             type: "integer",
             minimum: 0,
           },
-          medidas: {
-            type: "string",
+          alto: {
+            type: "number",
+            format: "float",
+            description: "Altura de la variante",
+          },
+          ancho: {
+            type: "number",
+            format: "float",
+            description: "Ancho de la variante",
+          },
+          largo: {
+            type: "number",
+            format: "float",
+            description: "Largo de la variante",
           },
           precio_publico: {
             type: "number",
@@ -2301,24 +2366,12 @@ Soporta paginación con ?take= y ?skip=`,
       UpdateVariante: {
         type: "object",
         description:
-          "Actualiza una variante existente (todos los campos son requeridos según controlador)",
-        required: [
-          "nivelesId",
-          "nombre",
-          "codigo",
-          "color",
-          "descripcion",
-          "cantidad",
-          "medidas",
-          "precio_publico",
-          "precio_contratista",
-          "costo_compra",
-          "foto",
-        ],
+          "Actualiza una variante existente. Todos los campos son opcionales; solo envíe los que desea modificar.",
+        required: [],
         properties: {
-          nivelesId: {
+          ubi_alma_id: {
             type: "integer",
-            description: "ID del nivel del estante",
+            description: "ID de la ubicación de almacén",
           },
           nombre: {
             type: "string",
@@ -2336,8 +2389,20 @@ Soporta paginación con ?take= y ?skip=`,
             type: "integer",
             minimum: 0,
           },
-          medidas: {
-            type: "string",
+          alto: {
+            type: "number",
+            format: "float",
+            description: "Altura de la variante",
+          },
+          ancho: {
+            type: "number",
+            format: "float",
+            description: "Ancho de la variante",
+          },
+          largo: {
+            type: "number",
+            format: "float",
+            description: "Largo de la variante",
           },
           precio_publico: {
             type: "number",
@@ -2396,6 +2461,18 @@ Soporta paginación con ?take= y ?skip=`,
                 color: {
                   type: "string",
                 },
+                alto: {
+                  type: "number",
+                  format: "float",
+                },
+                ancho: {
+                  type: "number",
+                  format: "float",
+                },
+                largo: {
+                  type: "number",
+                  format: "float",
+                },
                 medidas: {
                   type: "string",
                 },
@@ -2449,9 +2526,9 @@ Soporta paginación con ?take= y ?skip=`,
             type: "integer",
             description: "ID del producto padre",
           },
-          nivelesId: {
+          ubi_alma_id: {
             type: "integer",
-            description: "ID del nivel del estante donde se almacena",
+            description: "ID de la ubicación de almacén donde se almacena",
           },
           nombre: {
             type: "string",
@@ -2467,6 +2544,18 @@ Soporta paginación con ?take= y ?skip=`,
           },
           cantidad: {
             type: "integer",
+          },
+          alto: {
+            type: "number",
+            format: "float",
+          },
+          ancho: {
+            type: "number",
+            format: "float",
+          },
+          largo: {
+            type: "number",
+            format: "float",
           },
           medidas: {
             type: "string",
@@ -2709,12 +2798,14 @@ Soporta paginación con ?take= y ?skip=`,
           tipo_venta: {
             type: "string",
             enum: ["publico", "contratista"],
-            description: "Tipo de venta que determina el precio y ganancia a calcular",
+            description:
+              "Tipo de venta que determina el precio y ganancia a calcular",
             example: "publico",
           },
           costos_extras: {
             type: "array",
-            description: "Array de costos adicionales (envío, instalación, etc.)",
+            description:
+              "Array de costos adicionales (envío, instalación, etc.)",
             items: {
               type: "object",
               required: ["motivo", "costo"],
